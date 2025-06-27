@@ -5,7 +5,7 @@ from classes.YTDLSource import YTDLSource
 
 # DESCRIPTION: Chama a Bobininha para a chamada
 def setup(bot):
-    @bot.tree.command(name="venha", description="PÔ CARA, DENOVO CARAAA? 👻 ")
+    @bot.tree.command(name="come", description="PÔ CARA, DENOVO CARAAA? 👻 ")
     async def invoke(interaction: discord.Interaction):
         await interaction.response.defer()
         try:
