@@ -18,3 +18,6 @@ class Utils:
             voice_client = await voice_channel.connect()
 
         return (voice_client, voice_channel)
+
+    async def disconnect_from_channel(interaction: discord.Interaction):
+        await interaction.guild.voice_client.disconnect()
