@@ -21,7 +21,6 @@ Bobininha é um Bot que toca áudios baseados em uma URL que seja compátivel (m
 # TO-DO
 - DISCORD API INTEGRATION ✅
 - BOT TEXT COMMANDS ✅
-- KEY BINDS ⌛
 - MOSTRAR STATUS DO ÁUDIO ⌛
 - LIMITAÇÕES DO AUTOCOMPLETE (MÍNIMO DE CARACTERES) ⌛
 - URLS FIXAS QUE SÃO BOAS DE GUARDAR (OP.GG DAS CONTAS, ETC) ⌛
