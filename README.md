@@ -2,5 +2,7 @@
 
 ## Um bot genérico que toca áudios
 
-# TODO
-- tudo KEKW
+# TO-DO
+- DISCORD API INTEGRATION
+- BOT TEXT COMMAND INTEGRATION
+- GUI?
