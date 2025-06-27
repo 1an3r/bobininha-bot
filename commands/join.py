@@ -14,11 +14,11 @@ def setup(bot):
             if not voice_client or not voice_channel:
                 return
 
-            player = await YTDLSource.from_url("https://www.myinstants.com/media/sounds/file_378300.mp3", loop=bot.loop, stream=True)
+            player = await YTDLSource.from_url("https://www.youtube.com/watch?v=YLM2miAsYik", loop=bot.loop, stream=True)
 
             voice_client.play(player, after=lambda e: print(f'Erro no player: {e}') if e else None)
 
-            await interaction.followup.send(f"👁️🫦👁️ Po cara me chamando dnv cara")
+            await interaction.followup.send(f"👁️🫦👁️ Pô cara me chamando denovo cara??")
 
             while voice_client.is_playing():
                 await asyncio.sleep(1)
