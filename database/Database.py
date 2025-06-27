@@ -61,6 +61,9 @@ class Database:
     def get_all_keys(self):
         return "\n".join([f"• {name}" for name in self.audio_database.keys()])
 
+    def get_all_values(self):
+        return "\n".join([f".{url}" for url in self.audio_database.values()])
+
     def get_database(self):
         return self.audio_database
 

@@ -1,7 +1,5 @@
 import asyncio
-
 import yt_dlp
-
 from database.Database import Database
 import aiohttp
 
@@ -9,11 +7,15 @@ import aiohttp
 def setup(bot):
     @bot.tree.command(name="add", description="Adiciona um áudio")
     async def add(interaction, url: str, name: str):
-        await interaction.response.defer()
+        await interaction.response.defer(thinking=True, ephemeral=True)
 
         try:
-            if name.lower() in Database().get_database():
+            if name.lower() in Database().get_all_keys():
                 await interaction.followup.send(f"❌ Já existe um áudio com o nome '{name}'. Use outro nome.")
+                return
+
+            if url in Database().get_all_values():
+                await interaction.followup.send(f"❌ Já existe um áudio com este endereço, seu nome é {name} Digite /list para ver a lista completa de áudios disponíveis 😄")
                 return
 
             async with aiohttp.ClientSession() as session:
@@ -22,8 +24,9 @@ def setup(bot):
                         if response.status != 200:
                             await interaction.followup.send("❌ URL não encontrada ou inacessível.")
                             return
-                except Exception:
-                    await interaction.followup.send("❌ URL inválida.")
+
+                except Exception as e:
+                    await interaction.followup.send(f"❌ URL inválida. Erro: {e}")
                     return
 
             ytdl_opts = {
@@ -39,6 +42,7 @@ def setup(bot):
                 info = await loop.run_in_executor(
                     None, lambda: ytdl.extract_info(url, download=False)
                 )
+
             except yt_dlp.utils.DownloadError:
                 await interaction.followup.send(
                     "❌ Não foi possível processar a URL. Verifique se é um link de áudio/vídeo válido.")
