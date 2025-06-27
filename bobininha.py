@@ -13,12 +13,12 @@ intents.voice_states = True
 
 bot = commands.Bot(command_prefix='/', intents=intents)
 
-async def connect_to_channel(interaction: discord.Interaction) -> discord.VoiceClient:
-    if not interaction.user.voice or not interaction.user.voice.channel:
-        raise RuntimeError("Usuário não está conectado a um canal de voz.")
-
-    voice_channel = interaction.user.voice.channel
-    voice_client = interaction.guild.voice_client
+def load_commands(bot_instance):
+    for filename in os.listdir("commands"):
+        if filename.endswith(".py") and not filename.startswith("_"):
+            module = importlib.import_module(f"commands.{filename[:-3]}")
+            if hasattr(module, "setup"):
+                module.setup(bot_instance)
 
 load_commands(bot)
 
