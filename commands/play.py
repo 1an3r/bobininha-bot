@@ -40,13 +40,25 @@ def setup(bot):
                 await voice_client.disconnect()
             await interaction.followup.send(f"❌ Erro ao reproduzir áudio: {str(e)}")
 
+
 async def autocomplete_audios(interaction: discord.Interaction, current: str):
     try:
-        all_audios = Database().get_database().keys()
-        suggestions = [a for a in all_audios if current.lower() in a.lower()]
+        all_audios = list(Database().get_database().keys())  #
+        suggestions = []
+
+        if 0 < len(current) < 3:
+            short_audio_names = [name for name in all_audios if len(name) < 6]
+
+            suggestions = [s for s in short_audio_names if current.lower() in s.lower()]
+
+        elif len(current) >= 3:
+            suggestions = [a for a in all_audios if current.lower() in a.lower()]
+
         return [
             app_commands.Choice(name=nome, value=nome)
             for nome in suggestions[:25]
         ]
+
     except Exception as e:
-        return [e]
+        print(f"Error during autocomplete: {e}")
+        return []
