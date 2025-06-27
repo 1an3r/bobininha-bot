@@ -6,7 +6,7 @@ from classes.Utils import Utils
 # DESCRIPTION: Toca um áudio da lista de áudios
 def setup(bot):
     @bot.tree.command(name="play", description="Toca um áudio")
-    async def play_audio(interaction, name):
+    async def play_audio(interaction, name: str):
         await interaction.response.defer()
 
         (voice_client, voice_channel) = await Utils.connect_to_channel(interaction)
