@@ -1,0 +1,3 @@
+@echo off
+echo Iniciando bot do Discord...
+python bobininha.py
