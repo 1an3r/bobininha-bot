@@ -1,6 +1,7 @@
 import discord
 from classes.Utils import Utils
 
+# DESCRIPTION: Toca um áudio da lista de áudios
 def setup(bot):
     @bot.tree.command(name="stop", description="Para a reprodução e sai da sala de voz")
     async def stop_audio(interaction: discord.Interaction):
