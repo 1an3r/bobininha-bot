@@ -58,7 +58,7 @@ class SQLiteDatabase:
         cursor.execute("SELECT name, url, user, created_at FROM soundboard")
         rows = cursor.fetchall()
         return [
-            {"name": name, "url": url, "user": user, "created_at": created_at}
+            {"name": name, "url": url, "user": user, "created_at": created_at.split(" ")[0]}
             for name, url, user, created_at in rows
         ]
 
