@@ -1,9 +1,6 @@
-from database.Database import Database
 import asyncio
 from classes.YTDLSource import YTDLSource
 from classes.Utils import Utils
-from discord import app_commands
-import discord
 
 # DESCRIPTION: Toca um áudio baseado em uma URL
 def setup(bot):

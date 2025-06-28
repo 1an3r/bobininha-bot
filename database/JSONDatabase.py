@@ -2,7 +2,7 @@ import os
 import json
 from typing import Dict
 
-class Database:
+class JSONDatabase:
     audio_database: Dict[str, str] = {}
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))

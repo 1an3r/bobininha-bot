@@ -1,6 +1,6 @@
 from discord import app_commands
 from database.on_search import on_search
-from database.Database import Database
+from database.Databobinase import SQLiteDatabase
 import discord
 
 # DESCRIPTION: Remove um áudio da lista de áudios
@@ -12,10 +12,10 @@ def setup(bot):
         await interaction.response.defer()
         audio_name = name.lower()
 
-        if audio_name not in Database().get_database():
+        if audio_name not in SQLiteDatabase().get_database():
             await interaction.followup.send(f"❌ Áudio '{name}' não encontrado.")
             return
 
-        Database().remove(audio_name)
+        SQLiteDatabase().remove(audio_name)
 
         await interaction.followup.send(f"✅ Áudio '{name}' removido com sucesso!")

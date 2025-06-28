@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
-from database.Database import Database
+from database.JSONDatabase import JSONDatabase
 import os
 import importlib
 
@@ -25,7 +25,7 @@ load_commands(bot)
 @bot.event
 async def on_ready():
     print(f'{bot.user} conectou ao Discord!')
-    Database()
+    JSONDatabase()
 
     try:
         synced = await bot.tree.sync()

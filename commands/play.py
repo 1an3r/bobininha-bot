@@ -1,4 +1,4 @@
-from database.Database import Database
+from database.Databobinase import SQLiteDatabase
 import asyncio
 from classes.YTDLSource import YTDLSource
 from classes.Utils import Utils
@@ -17,12 +17,12 @@ def setup(bot):
 
         try:
             audio_name = name.lower()
-            if audio_name not in Database().get_database():
+            if audio_name not in SQLiteDatabase().get_database():
                 await interaction.followup.send(
                     f"❌ Áudio '{name}' não encontrado. Use `/list` para ver os áudios disponíveis.")
                 return
 
-            url = Database().get_by_key(audio_name)
+            url = SQLiteDatabase().get_by_key(audio_name)
             player = await YTDLSource.from_url(url, loop=bot.loop, stream=True)
 
             if not voice_client or not voice_channel:
