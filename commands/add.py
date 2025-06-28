@@ -10,12 +10,20 @@ def setup(bot):
         await interaction.response.defer()
 
         try:
-            if name.lower() in SQLiteDatabase().get_all_keys():
+            if name.lower() in SQLiteDatabase().get_all_names():
                 await interaction.followup.send(f"❌ Já existe um áudio com o nome '{name}'. Use outro nome.")
                 return
 
-            if url in SQLiteDatabase().get_all_values():
-                await interaction.followup.send(f"❌ Já existe um áudio com este endereço, seu nome é {SQLiteDatabase().get_by_value(url)[0]}.\n\rDigite /list para ver a lista completa de áudios disponíveis 😄")
+            if url in SQLiteDatabase().get_all_urls():
+                await interaction.followup.send(f"❌ Já existe um áudio com este endereço, seu nome é {SQLiteDatabase().get_by_url(url)[0]}.\n\rDigite /list para ver a lista completa de áudios disponíveis 😄")
+                return
+
+            if len(name.lower()) >= 10:
+                await interaction.followup.send("❌ Este nome é muito grande. Por favor mantenha a diretriz de nomes de até dez (10) caracteres.")
+                return
+
+            if " " in name.lower():
+                await interaction.followup.send("❌ Este nome contém um espaço. Favor retirar os espaços e utilizar apenas caracteres ASCII não especiais.")
                 return
 
             async with aiohttp.ClientSession() as session:

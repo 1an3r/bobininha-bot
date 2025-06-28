@@ -5,7 +5,7 @@ import discord
 
 async def on_search(interaction: discord.Interaction, current: str):
     try:
-        all_audios = list(SQLiteDatabase().get_database().keys())
+        all_audios = list(SQLiteDatabase().get_database())
         suggestions = []
 
         if 0 < len(current) < 2:

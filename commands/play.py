@@ -22,7 +22,7 @@ def setup(bot):
                     f"❌ Áudio '{name}' não encontrado. Use `/list` para ver os áudios disponíveis.")
                 return
 
-            url = SQLiteDatabase().get_by_key(audio_name)
+            url = SQLiteDatabase().get_by_name(audio_name)
             player = await YTDLSource.from_url(url, loop=bot.loop, stream=True)
 
             if not voice_client or not voice_channel:

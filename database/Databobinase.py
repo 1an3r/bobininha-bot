@@ -38,12 +38,12 @@ class SQLiteDatabase:
         cursor.execute("DELETE FROM soundboard WHERE name = ?", (name.lower(),))
         self.conn.commit()
 
-    def get_all_keys(self):
+    def get_all_names(self):
         cursor = self.conn.cursor()
         cursor.execute("SELECT name FROM soundboard")
         return "\n".join([f"• {row[0]}" for row in cursor.fetchall()])
 
-    def get_all_values(self):
+    def get_all_urls(self):
         cursor = self.conn.cursor()
         cursor.execute("SELECT url FROM soundboard")
         return "\n".join([f".{row[0]}" for row in cursor.fetchall()])
@@ -53,16 +53,22 @@ class SQLiteDatabase:
         cursor.execute("SELECT name, url FROM soundboard")
         return {name: url for name, url in cursor.fetchall()}
 
-    def get_by_key(self, key: str):
+    def get_database_columns(self):
         cursor = self.conn.cursor()
-        cursor.execute("SELECT url FROM soundboard WHERE name = ?", (key.lower(),))
+        cursor.execute("SELECT name, url, user, created_at FROM soundboard")
+        rows = cursor.fetchall()
+        return [
+            {"name": name, "url": url, "user": user, "created_at": created_at}
+            for name, url, user, created_at in rows
+        ]
+
+    def get_by_name(self, name: str):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT url FROM soundboard WHERE name = ?", (name.lower(),))
         result = cursor.fetchone()
         return result[0] if result else None
 
-    def get_by_value(self, value: str):
+    def get_by_url(self, url: str):
         cursor = self.conn.cursor()
-        cursor.execute("SELECT name FROM soundboard WHERE url = ?", (value.strip(),))
+        cursor.execute("SELECT name FROM soundboard WHERE url = ?", (url.strip(),))
         return [row[0] for row in cursor.fetchall()]
-
-    def search_by_name(self, key: str):
-        return self.get_by_key(key)
