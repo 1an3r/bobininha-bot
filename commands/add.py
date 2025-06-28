@@ -7,7 +7,7 @@ import aiohttp
 def setup(bot):
     @bot.tree.command(name="add", description="Adiciona um áudio")
     async def add(interaction, url: str, name: str):
-        await interaction.response.defer(thinking=True, ephemeral=True)
+        await interaction.response.defer()
 
         try:
             if name.lower() in Database().get_all_keys():
@@ -15,7 +15,7 @@ def setup(bot):
                 return
 
             if url in Database().get_all_values():
-                await interaction.followup.send(f"❌ Já existe um áudio com este endereço, seu nome é {name} Digite /list para ver a lista completa de áudios disponíveis 😄")
+                await interaction.followup.send(f"❌ Já existe um áudio com este endereço, seu nome é {Database().get_by_value(url)[0]}.\n\rDigite /list para ver a lista completa de áudios disponíveis 😄")
                 return
 
             async with aiohttp.ClientSession() as session:
