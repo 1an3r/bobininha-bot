@@ -18,8 +18,8 @@ def setup(bot):
                 await interaction.followup.send(f"❌ Já existe um áudio com este endereço, seu nome é {SQLiteDatabase().get_by_url(url)[0]}.\n\rDigite /list para ver a lista completa de áudios disponíveis 😄")
                 return
 
-            if len(name.lower()) >= 10:
-                await interaction.followup.send("❌ Este nome é muito grande. Por favor mantenha a diretriz de nomes de até dez (10) caracteres.")
+            if len(name.lower()) >= 15:
+                await interaction.followup.send("❌ Este nome é muito grande. Por favor mantenha a diretriz de nomes de até 15 caracteres.")
                 return
 
             if " " in name.lower():
