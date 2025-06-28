@@ -61,11 +61,18 @@ class Database:
     def get_all_keys(self):
         return "\n".join([f"• {name}" for name in self.audio_database.keys()])
 
+    def get_all_values(self):
+        return "\n".join([f".{url}" for url in self.audio_database.values()])
+
     def get_database(self):
         return self.audio_database
 
-    def get_database_by(self, key):
+    def get_by_key(self, key):
         return self.audio_database.get(key.lower())
+
+    def get_by_value(self, value: str):
+        value = value.strip()
+        return [key for key, val in self.audio_database.items() if val == value]
 
     def search_by_name(self, key):
         return self.audio_database.get(key.lower())

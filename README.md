@@ -1,4 +1,4 @@
-# Bobininha Bot
+# Bobininha Bot: alpha 2.4.13 Tundra Reindeer
 
 ## "...Por que pagar nitro para ter mais do que 8 áudios no soundboard é um absurdo, pô."
 Bobininha é um Bot que toca áudios baseados em uma URL que seja compátivel (mp3, ytb), mediante comandos de texto.
@@ -21,7 +21,6 @@ Bobininha é um Bot que toca áudios baseados em uma URL que seja compátivel (m
 # TO-DO
 - DISCORD API INTEGRATION ✅
 - BOT TEXT COMMANDS ✅
-- KEY BINDS ⌛
 - MOSTRAR STATUS DO ÁUDIO ⌛
 - LIMITAÇÕES DO AUTOCOMPLETE (MÍNIMO DE CARACTERES) ⌛
 - URLS FIXAS QUE SÃO BOAS DE GUARDAR (OP.GG DAS CONTAS, ETC) ⌛
