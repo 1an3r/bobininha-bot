@@ -121,3 +121,13 @@ class SQLite3DB:
         cursor.execute("SELECT url FROM queue ORDER BY created_at LIMIT 2")
         result = cursor.fetchall()
         return result
+
+    def remove_current_music(self):
+        cursor = self.conn.cursor()
+        cursor.execute("DELETE FROM queue WHERE id = (SELECT id FROM queue ORDER BY created_at LIMIT 1)")
+        self.conn.commit()
+
+    def count_queue(self):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM queue")
+        return cursor.fetchone()[0]
