@@ -5,7 +5,7 @@ import aiohttp
 
 # DESCRIPTION: Adiciona um áudio na lista de áudios
 def setup(bot):
-    @bot.tree.command(name="add", description="Adiciona um áudio")
+    @bot.tree.command(name="addsay", description="Adiciona um áudio")
     async def add(interaction, url: str, name: str):
         await interaction.response.defer()
 
@@ -57,6 +57,7 @@ def setup(bot):
                 return
 
             duration = info.get('duration', 0)
+            title = info.get('title', '')
 
             if duration > 120:
                 await interaction.followup.send(

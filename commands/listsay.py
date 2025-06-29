@@ -3,7 +3,7 @@ import discord
 
 # DESCRIPTION: Lista os áudios
 def setup(bot):
-    @bot.tree.command(name="list", description="Lista todos os áudios disponíveis")
+    @bot.tree.command(name="listsay", description="Lista todos os áudios disponíveis")
     async def list_audios(interaction: discord.Interaction):
         await interaction.response.defer()
 

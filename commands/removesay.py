@@ -5,7 +5,7 @@ import discord
 
 # DESCRIPTION: Remove um áudio da lista de áudios
 def setup(bot):
-    @bot.tree.command(name="remove", description="Remove um áudio do bot")
+    @bot.tree.command(name="removesay", description="Remove um áudio do bot")
     @app_commands.describe(name="Nome do áudio a ser removido")
     @app_commands.autocomplete(name=on_search)
     async def remove_audio(interaction: discord.Interaction, name: str):

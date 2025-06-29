@@ -11,7 +11,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         'nocheckcertificate': True,
         'ignoreerrors': False,
         'logtostderr': False,
-        'quiet': True,
+        'quiet': False,
         'no_warnings': True,
         'default_search': 'auto',
         'source_address': '0.0.0.0',
@@ -22,8 +22,6 @@ class YTDLSource(discord.PCMVolumeTransformer):
         'options': '-vn',
     }
 
-    ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
-
     def __init__(self, source, *, data, volume=0.5):
         super().__init__(source, volume)
         self.data = data
@@ -32,11 +30,28 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
     @classmethod
     async def from_url(self, url, *, loop=None, stream=False):
+        ytdl = yt_dlp.YoutubeDL(self.ytdl_format_options)
         loop = loop or asyncio.get_event_loop()
-        data = await loop.run_in_executor(None, lambda: self.ytdl.extract_info(url, download=not stream))
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
 
         if 'entries' in data:
             data = data['entries'][0]
 
-        filename = data['url'] if stream else self.ytdl.prepare_filename(data)
+        filename = data['url'] if stream else ytdl.prepare_filename(data)
         return self(discord.FFmpegPCMAudio(filename, **self.ffmpeg_options), data=data)
+
+    @classmethod
+    async def get_url_info(self, url, noplaylist=True):
+        loop = asyncio.get_event_loop()
+        self.ytdl_format_options["noplaylist"] = noplaylist
+        ytdl = yt_dlp.YoutubeDL(self.ytdl_format_options)
+
+        try:
+            info = await loop.run_in_executor(
+                None, lambda: ytdl.extract_info(url, download=False)
+            )
+
+        except yt_dlp.utils.DownloadError:
+            print(yt_dlp.utils.DownloadError)
+
+        return info
