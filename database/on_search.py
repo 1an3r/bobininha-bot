@@ -1,11 +1,11 @@
 from discord import app_commands
-from database.Databobinase import SQLiteDatabase
+from database.SQLite3 import SQLite3DB
 import discord
 
 
 async def on_search(interaction: discord.Interaction, current: str):
     try:
-        all_audios = list(SQLiteDatabase().get_database())
+        all_audios = list(SQLite3DB().get_soundboard_db())
         suggestions = []
 
         if 0 < len(current) < 2:

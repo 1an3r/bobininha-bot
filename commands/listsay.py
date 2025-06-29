@@ -1,4 +1,4 @@
-from database.Databobinase import SQLiteDatabase
+from database.SQLite3 import SQLite3DB
 import discord
 
 # DESCRIPTION: Lista os áudios
@@ -7,11 +7,11 @@ def setup(bot):
     async def list_audios(interaction: discord.Interaction):
         await interaction.response.defer()
 
-        if not SQLiteDatabase().get_database_columns():
+        if not SQLite3DB().get_soundboard_db_columns():
             await interaction.followup.send("📭 Nenhum áudio foi adicionado ainda.")
             return
 
-        object_list = SQLiteDatabase().get_database_columns()
+        object_list = SQLite3DB().get_soundboard_db_columns()
 
         # Set fixed column widths to ensure alignment
         name_width = max(max(len(item["name"]) for item in object_list), len("Nome")) + 2

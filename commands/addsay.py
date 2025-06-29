@@ -1,6 +1,6 @@
 import asyncio
 import yt_dlp
-from database.Databobinase import SQLiteDatabase
+from database.SQLite3 import SQLite3DB
 import aiohttp
 
 # DESCRIPTION: Adiciona um áudio na lista de áudios
@@ -10,12 +10,12 @@ def setup(bot):
         await interaction.response.defer()
 
         try:
-            if name.lower() in SQLiteDatabase().get_all_names():
+            if name.lower() in SQLite3DB().get_all_sound_names():
                 await interaction.followup.send(f"❌ Já existe um áudio com o nome '{name}'. Use outro nome.")
                 return
 
-            if url in SQLiteDatabase().get_all_urls():
-                await interaction.followup.send(f"❌ Já existe um áudio com este endereço, seu nome é {SQLiteDatabase().get_by_url(url)[0]}.\n\rDigite /list para ver a lista completa de áudios disponíveis 😄")
+            if url in SQLite3DB().get_all_sound_urls():
+                await interaction.followup.send(f"❌ Já existe um áudio com este endereço, seu nome é {SQLite3DB().get_sound_by_url(url)[0]}.\n\rDigite /list para ver a lista completa de áudios disponíveis 😄")
                 return
 
             if len(name.lower()) >= 15:
@@ -64,7 +64,7 @@ def setup(bot):
                     f"❌ O áudio excede o limite de 2 minutos. Duração detectada: **{int(duration // 60)}m {int(duration % 60)}s**.")
                 return
 
-            SQLiteDatabase().save(name, url, interaction.user.name)
+            SQLite3DB().save_sound(name, url, interaction.user.name)
 
             await interaction.followup.send(f"✅ Áudio '{name}' adicionado com sucesso!")
 
