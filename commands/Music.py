@@ -1,4 +1,5 @@
 import asyncio
+from time import sleep
 from typing import Optional
 import discord
 from discord import app_commands
@@ -14,46 +15,45 @@ class Music(app_commands.Group):
         super().__init__(name="music", description="Toca coisinhas 😊.")
         self.bot = bot
 
-    async def after_song_finished(self, voice_client: discord.VoiceClient, error: Optional[Exception],
-                                  interaction: discord.Interaction):
-        if error:
-            print(f"Player error in after_song_finished: {error}")
-            return
+    async def after_song_finished(self, voice_client: discord.VoiceClient, error: Optional[Exception], interaction: discord.Interaction):
+        try:
+            if error:
+                print(f"Player error in after_song_finished: {error}")
+                return
 
-        await self.bot.loop.run_in_executor(
-            None,
-            lambda: SQLite3DB().remove_current_music()
-        )
-        print("Música anterior removida da fila após término ou interrupção.")
+            await self.bot.loop.run_in_executor(
+                None,
+                lambda: SQLite3DB().remove_current_music()
+            )
 
-        asyncio.run_coroutine_threadsafe(self.play_next_in_queue(interaction, voice_client), self.bot.loop)
+            asyncio.run_coroutine_threadsafe(self.play_next_in_queue(interaction, voice_client), self.bot.loop)
+
+        except Exception as e:
+            print(f"Música anterior removida da fila após término ou interrupção. Erro {e}.")
 
     async def play_next_in_queue(self, interaction: discord.Interaction, voice_client: discord.VoiceClient):
         if not voice_client or not voice_client.is_connected():
-            queue_count = await self.bot.loop.run_in_executor(None, lambda: SQLite3DB().count_queue())
-            if queue_count > 0:
-                await interaction.followup.send("Não estou conectado a um canal...")
+            await interaction.followup.send("Não estou conectado a um canal...")
+            return
+
+        if not SQLite3DB().count_queue():
+            await interaction.followup.send("A fila acabou...")
             return
 
         next_song_url = await self.bot.loop.run_in_executor(None, lambda: SQLite3DB().get_current_queue_music())
 
-        if next_song_url:
-            try:
-                player = await YTDLSource.from_url(next_song_url, loop=self.bot.loop, stream=True)
+        try:
+            player = await YTDLSource.from_url(next_song_url, loop=self.bot.loop, stream=True)
 
-                voice_client.play(player, after=lambda e: asyncio.run_coroutine_threadsafe(
-                    self.after_song_finished(voice_client, e, interaction), self.bot.loop
-                ))
+            voice_client.play(player, after=lambda e: asyncio.run_coroutine_threadsafe(self.after_song_finished(voice_client, e, interaction), self.bot.loop))
 
-                await interaction.followup.send(f"🎵 Tocando próxima música na fila: **{player.title}**",
-                                                view=AudioControls(voice_client))
-            except Exception as e:
-                print(f"Erro ao tocar próxima música da fila: {e}")
-                await interaction.followup.send(f"❌ Erro ao tocar próxima música da fila: {str(e)}")
-                await self.bot.loop.run_in_executor(None, lambda: SQLite3DB().remove_current_music())
-                await self.play_next_in_queue(interaction, voice_client)
-        else:
-            await interaction.followup.send("Fila vazia. Não há mais músicas para tocar.")
+            await interaction.followup.send(f"🎵 Tocando próxima música na fila: **{player.title}**", view=AudioControls(voice_client))
+
+        except Exception as e:
+            print(f"Erro ao tocar próxima música da fila: {e}")
+            await interaction.followup.send(f"❌ Erro ao tocar próxima música da fila: {str(e)}")
+            await self.bot.loop.run_in_executor(None, lambda: SQLite3DB().remove_current_music())
+            await self.play_next_in_queue(interaction, voice_client)
 
     @app_commands.command(name="play", description="Toca uma música ou playlist 🎶.")
     @app_commands.describe(url="URL da música ou playlist")

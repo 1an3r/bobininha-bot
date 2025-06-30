@@ -124,7 +124,7 @@ class SQLite3DB:
     def count_queue(self):
         cursor = self.conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM queue")
-        return cursor.fetchone()[0]
+        return cursor.fetchone()[0] if cursor.fetchone() else None
 
     def get_queue(self):
         cursor = self.conn.cursor()
