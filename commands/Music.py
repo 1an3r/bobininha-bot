@@ -1,17 +1,15 @@
 import asyncio
 from typing import Optional
-
 import discord
-import yt_dlp
 from discord import app_commands
 from discord.ext import commands
 from classes.Utils import Utils
 from classes.YTDLSource import YTDLSource
 from classes.Controls import AudioControls
-from database.on_search import on_search
 from database.SQLite3 import SQLite3DB
 
-class Play(app_commands.Group):
+# DESCRIPTION: Grupo de comandos Music. Music play: Toca uma música ou coloca na fila. Music skip: Pula uma música.
+class Music(app_commands.Group):
     def __init__(self, bot):
         super().__init__(name="play", description="Toca coisinhas 😊.")
         self.bot = bot
@@ -86,44 +84,6 @@ class Play(app_commands.Group):
         else:
             await interaction.followup.send("Música adicionada à fila e será tocada em breve.")
 
-
-    @app_commands.command(name="sound", description="Toca um meme 🔈.")
-    @app_commands.describe(name="Nome do meme")
-    @app_commands.autocomplete(name=on_search)
-    async def play_sound(self, interaction: discord.Interaction, name: str):
-        await interaction.response.defer()
-
-        (voice_client, voice_channel) = await Utils.connect_to_channel(interaction)
-
-        if not voice_client or not voice_channel:
-            return
-
-        try:
-            audio_name = name.lower()
-            if audio_name not in self.db.get_soundboard_db(): # Assumed get_soundboard_db exists
-                await interaction.followup.send(
-                    f"❌ Áudio '{name}' não encontrado. Use `/list` para ver os áudios disponíveis.")
-                return
-
-            url = self.db.get_sound_by_name(audio_name)
-            player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-
-            if voice_client.is_playing():
-                voice_client.stop()
-
-            voice_client.play(player)
-
-            await interaction.followup.send(f"🎵 Tocando som: {name}")
-
-            while voice_client.is_playing():
-                await asyncio.sleep(1)
-
-        except Exception as e:
-            if voice_client.is_connected():
-                await voice_client.disconnect()
-            await interaction.followup.send(f"❌ Erro ao reproduzir áudio: {str(e)}")
-
-
     @app_commands.command(name="fast", description="Toca um meme ou música, limite: 3 minutos 😄.")
     async def play_fast(self, interaction: discord.Interaction, url: str):
         await interaction.response.defer()
@@ -134,24 +94,15 @@ class Play(app_commands.Group):
             return
 
         try:
-            player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-
-            if voice_client.is_playing():
-                voice_client.stop()
-
-            voice_client.play(player)
-
-            await interaction.followup.send(f"🎵 Tocando {url}")
-
-            while voice_client.is_playing():
-                await asyncio.sleep(1)
+            await Utils.player_call(voice_client, url)
+            await interaction.followup.send(f"🎵 Tocando som.")
 
         except Exception as e:
             if voice_client.is_connected():
                 await voice_client.disconnect()
             await interaction.followup.send(f"❌ Erro ao reproduzir áudio: {str(e)}")
 
-    @app_commands.command(name="music", description="Adiciona uma música à fila ou começa a tocar se a fila estiver vazia.")
+    @app_commands.command(name="play", description="Adiciona uma música à fila ou começa a tocar se a fila estiver vazia.")
     @app_commands.describe(url="URL do YouTube ou Spotify da música.")
     async def play_music(self, interaction: discord.Interaction, url: str):
         await interaction.response.defer()
@@ -168,5 +119,31 @@ class Play(app_commands.Group):
             await interaction.followup.send(f"❌ Erro ao adicionar música à fila: {str(e)}")
             print(f"Erro em play_music: {e}")
 
+    @app_commands.command(name="skip", description="Pula para a próxima música da fila. 🦘")
+    async def skip(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        (voice_client, voice_channel) = await Utils.connect_to_channel(interaction)
+
+        if not voice_client or not voice_client.is_connected():
+            await interaction.followup.send("Não estou conectado a um canal de voz.")
+            return
+
+        if not voice_client.is_playing():
+            await interaction.followup.send("Nada para pular.")
+            return
+
+        try:
+            voice_client.stop()
+
+            SQLite3DB().remove_current_music()
+            print("Música atual removida da fila após o comando skip.")
+
+            await Music(self.bot).play_next_in_queue(interaction, voice_client)
+
+        except Exception as e:
+            await interaction.followup.send(f"❌ Erro ao pular música: {str(e)}")
+            print(f"Erro no comando skip: {e}")
+
 def setup(bot: commands.Bot):
-    bot.tree.add_command(Play(bot))
+    bot.tree.add_command(Music(bot))
