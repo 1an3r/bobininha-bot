@@ -116,12 +116,6 @@ class SQLite3DB:
         cursor.execute("INSERT INTO queue (url, user, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)", (url, user))
         self.conn.commit()
 
-    def get_skip(self):
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT url FROM queue ORDER BY created_at LIMIT 2")
-        result = cursor.fetchall()
-        return result
-
     def remove_current_music(self):
         cursor = self.conn.cursor()
         cursor.execute("DELETE FROM queue WHERE id = (SELECT id FROM queue ORDER BY created_at LIMIT 1)")
@@ -131,3 +125,8 @@ class SQLite3DB:
         cursor = self.conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM queue")
         return cursor.fetchone()[0]
+
+    def get_queue(self):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT url, user FROM queue ORDER BY created_at")
+        return [{"url": row[0], "user": row[1]} for row in cursor.fetchall()]
