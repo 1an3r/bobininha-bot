@@ -130,3 +130,7 @@ class SQLite3DB:
         cursor = self.conn.cursor()
         cursor.execute("SELECT url, user FROM queue ORDER BY created_at")
         return [{"url": row[0], "user": row[1]} for row in cursor.fetchall()]
+
+    def nuking_queue(self):
+        cursor = self.conn.cursor()
+        cursor.execute("DELETE FROM queue WHERE id = *")

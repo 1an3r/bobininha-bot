@@ -30,6 +30,7 @@ class Music(app_commands.Group):
 
         except Exception as e:
             print(f"Música anterior removida da fila após término ou interrupção. Erro {e}.")
+            await interaction.followup.send(f"❌ Erro ao tocar próxima música da fila: {str(e)}")
 
     async def play_next_in_queue(self, interaction: discord.Interaction, voice_client: discord.VoiceClient):
         if not voice_client or not voice_client.is_connected():
@@ -40,20 +41,20 @@ class Music(app_commands.Group):
             await interaction.followup.send("A fila acabou...")
             return
 
-        next_song_url = await self.bot.loop.run_in_executor(None, lambda: SQLite3DB().get_current_queue_music())
-
         try:
-            player = await YTDLSource.from_url(next_song_url, loop=self.bot.loop, stream=True)
+            next_url = await self.bot.loop.run_in_executor(None, lambda: SQLite3DB().get_current_queue_music())
+            player = await YTDLSource.from_url(next_url, loop=self.bot.loop, stream=True)
 
             voice_client.play(player, after=lambda e: asyncio.run_coroutine_threadsafe(self.after_song_finished(voice_client, e, interaction), self.bot.loop))
 
             await interaction.followup.send(f"🎵 Tocando próxima música na fila: **{player.title}**", view=AudioControls(voice_client))
 
         except Exception as e:
-            print(f"Erro ao tocar próxima música da fila: {e}")
-            await interaction.followup.send(f"❌ Erro ao tocar próxima música da fila: {str(e)}")
-            await self.bot.loop.run_in_executor(None, lambda: SQLite3DB().remove_current_music())
-            await self.play_next_in_queue(interaction, voice_client)
+            print(f"Erro ao tocar próxima música da fila: {e}.\n Limpando a fila e saindo... 😢")
+            await interaction.followup.send(f"❌ Erro ao tocar próxima música da fila: {str(e)}.\n Limpando a fila e saindo... 😢")
+            await self.bot.loop.run_in_executor(None, lambda: SQLite3DB().nuking_queue())
+            await voice_client.disconnect()
+            return
 
     @app_commands.command(name="play", description="Toca uma música ou playlist 🎶.")
     @app_commands.describe(url="URL da música ou playlist")
@@ -62,9 +63,11 @@ class Music(app_commands.Group):
 
         await self.bot.loop.run_in_executor(None, lambda: SQLite3DB().append_to_queue(url, str(interaction.user)))
 
-        (voice_client, voice_channel) = await Utils.connect_to_channel(interaction)
+        try:
+            (voice_client, voice_channel) = await Utils.connect_to_channel(interaction)
 
-        if not voice_client or not voice_channel:
+        except Exception as e:
+            await interaction.followup.send(f"Erro: {e}")
             return
 
         next_song = await self.bot.loop.run_in_executor(None, lambda: SQLite3DB().get_current_queue_music())
