@@ -17,47 +17,81 @@ class Music(app_commands.Group):
     @app_commands.command(name="play", description="Toca uma música ou playlist 🎶.")
     async def play(self, interaction: discord.Interaction):
         await interaction.response.defer()
+        try:
+            queue_size = SQLite3DB().count_queue()
+            queue = SQLite3DB().get_queue()
 
-        queue = SQLite3DB().get_queue()
+            if queue_size == 0:
+                SQLite3DB().debugging_queue()
 
-        (voice_client, voice_channel) = await Utils.connect_to_channel(interaction)
+            (voice_client, voice_channel) = await Utils.connect_to_channel(interaction)
 
-        while len(queue) != 0:
-            await self.play_loop(interaction, voice_client)
+            await interaction.followup.send(f"Tocando próxima música da fila: {queue[0].title}.")
 
+            await self.play_queue(interaction, voice_client, queue_size)
+
+
+        except discord.ClientException as e:
+            print(f"Capturei o seguinte erro: {e}. Estou no comando play. Continuando...")
+            return
+
+        except Exception as e:
+            await interaction.followup.send(f"Erro no comando play: {e}")
+            return
 
     @app_commands.command(name="skip", description="Pula para a próxima música da fila. 🦘.")
     async def skip(self, interaction: discord.Interaction):
         await interaction.response.defer()
+        try:
+            queue = SQLite3DB().get_queue()
+            queue_size = SQLite3DB().count_queue()
 
-        await interaction.followup.send("Ainda estamos implementando o skip, volte mais tarde...")
+            (voice_client, voice_channel) = await Utils.connect_to_channel(interaction)
+
+            if voice_client.is_playing() or voice_client.is_paused():
+                voice_client.stop()
+                SQLite3DB().set_played(queue[0].id)
+                await asyncio.sleep(1)
+                await self.play_queue(interaction, voice_client, queue_size)
+
+        except discord.ClientException as e:
+            print(f"Capturei o seguinte erro: {e}. Estou no comando skip. Continuando...")
+            return
+
+        except Exception as e:
+            await interaction.followup.send(f"Erro no commando skip: {e}")
+            return
 
     @app_commands.command(name="queue", description="Mostra a fila de músicas 🎶.")
     async def view_queue(self, interaction: discord.Interaction):
         await interaction.response.defer()
+        try:
+            queue = SQLite3DB().get_queue()
+            queue_size = SQLite3DB().count_queue()
 
-        queue = SQLite3DB().get_queue()
+            if queue_size == 0:
+                await interaction.followup.send("A fila de músicas está vazia! 🎶")
+                return
 
-        if len(queue) == 0:
-            await interaction.followup.send("A fila de músicas está vazia! 🎶")
-            return
+            embed = discord.Embed(
+                title="Fila de Músicas",
+                description="Aqui estão as próximas músicas na fila:",
+                color=discord.Color.blue()
+            )
 
-        embed = discord.Embed(
-            title="Fila de Músicas",
-            description="Aqui estão as próximas músicas na fila:",
-            color=discord.Color.blue()
-        )
+            description_text = ""
 
-        description_text = ""
+            for i, item in enumerate(queue):
+                description_text += f"{i+1} - {limit_str_len(item.title)} - User: {item.user}\n"
+                if len(description_text) > 1900:
+                    description_text += "/n... e mais."
+                    break
 
-        for i, item in enumerate(queue):
-            description_text += f"{i+1} - {limit_str_len(item.title)} - User: {item.user}\n"
-            if len(description_text) > 1900:
-                description_text += "/n... e mais."
-                break
+            embed.description = description_text
+            await interaction.followup.send(embed=embed)
 
-        embed.description = description_text
-        await interaction.followup.send(embed=embed)
+        except Exception as e:
+            await interaction.followup.send(f"Erro no comando queue: {e}")
 
     @app_commands.command(name="add", description="Adiciona música na fila 🎶.")
     @app_commands.describe(url="URL da música")
@@ -95,12 +129,13 @@ class Music(app_commands.Group):
         await interaction.followup.send(f"Deletei a música: {title} da fila.")
 
 
-    async def play_loop(self, interaction: discord.Interaction, voice_client: discord.VoiceClient):
+    async def play_next(self, interaction: discord.Interaction, voice_client: discord.VoiceClient):
         queue = SQLite3DB().get_queue()
+        queue_size = SQLite3DB().count_queue()
 
-        if not queue[0]:
+        if queue_size == 0:
             await interaction.followup.send("Acabou a fila.")
-            return
+            raise Exception
 
         player = await YTDLSource.from_url(queue[0].url, loop=self.bot.loop, stream=True)
         voice_client.play(player)
@@ -109,6 +144,31 @@ class Music(app_commands.Group):
             await asyncio.sleep(1)
 
         SQLite3DB().set_played(queue[0].id)
+
+        queue = SQLite3DB().get_queue()
+
+        return queue
+
+    async def play_queue(self, interaction: discord.Interaction, voice_client: discord.VoiceClient, queue_size: int):
+        while queue_size > 0:
+            try:
+                next_in_queue = await self.play_next(interaction, voice_client)
+
+                await interaction.followup.send(f"Tocando próxima música da fila: {next_in_queue[0].title}.")
+
+            except discord.ClientException as e:
+                print(f"Capturei o seguinte erro: {e}. Estou na função play_queue. Continuando...")
+                return
+
+            except IndexError as e:
+                await interaction.followup.send("Fila vazia.")
+                print(f"Index Error: {e}")
+                return
+
+            except Exception as e:
+                await interaction.followup.send(f"Erro na função play_queue: {e}")
+                print(f"Exception Error: {e}")
+                return
 
 def setup(bot):
     bot.tree.add_command(Music(bot))

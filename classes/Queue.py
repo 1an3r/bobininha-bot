@@ -8,3 +8,4 @@ class Queue:
     title: str = ""
     user: str = ""
     created_at: str = ""
+    played: bool = False

@@ -100,6 +100,8 @@ class SQLite3DB:
             for row in rows
         ]
 
+
+
     def get_soundboard_db_columns(self):
         cursor = self.conn.cursor()
         cursor.execute("SELECT name, url, user, created_at FROM soundboard")
@@ -138,13 +140,20 @@ class SQLite3DB:
 
     def count_queue(self):
         cursor = self.conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM queue")
-        return cursor.fetchone() if cursor.fetchone() else 0
+        cursor.execute("SELECT COUNT(*) FROM queue WHERE played IS FALSE")
+        result = cursor.fetchone()[0]
+        return result if result else 0
 
     def nuking_queue_table(self):
         cursor = self.conn.cursor()
         cursor.execute("DELETE FROM queue")
 
+    def debugging_queue(self):
+        cursor = self.conn.cursor()
+        cursor.execute("UPDATE queue SET played = FALSE")
+        self.conn.commit()
+
     def set_played(self, music_id):
         cursor = self.conn.cursor()
         cursor.execute("UPDATE queue SET played = ? WHERE id = ?", (True, music_id))
+        self.conn.commit()
