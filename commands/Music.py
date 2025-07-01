@@ -1,127 +1,44 @@
 import asyncio
-from time import sleep
-from typing import Optional
+import aiohttp
 import discord
 from discord import app_commands
-from discord.ext import commands
-from classes.Utils import Utils
+from classes.Utils import Utils, limit_str_len
 from classes.YTDLSource import YTDLSource
 from classes.Controls import AudioControls
 from database.SQLite3 import SQLite3DB
+from database.on_search_music import on_search_queue
 
-# DESCRIPTION: Grupo de comandos Music. Music play: Toca uma música ou coloca na fila. Music skip: Pula uma música.
+# DESCRIPTION: Grupo de comandos Music. Music play: \nToca uma música ou coloca na fila. Music skip: Pula uma música.
 class Music(app_commands.Group):
     def __init__(self, bot):
         super().__init__(name="music", description="Toca coisinhas 😊.")
         self.bot = bot
 
-    async def after_song_finished(self, voice_client: discord.VoiceClient, error: Optional[Exception], interaction: discord.Interaction):
-        try:
-            if error:
-                print(f"Player error in after_song_finished: {error}")
-                return
-
-            await self.bot.loop.run_in_executor(
-                None,
-                lambda: SQLite3DB().remove_current_music()
-            )
-
-            asyncio.run_coroutine_threadsafe(self.play_next_in_queue(interaction, voice_client), self.bot.loop)
-
-        except Exception as e:
-            print(f"Música anterior removida da fila após término ou interrupção. Erro {e}.")
-            await interaction.followup.send(f"❌ Erro ao tocar próxima música da fila: {str(e)}")
-
-    async def play_next_in_queue(self, interaction: discord.Interaction, voice_client: discord.VoiceClient):
-        if not voice_client or not voice_client.is_connected():
-            await interaction.followup.send("Não estou conectado a um canal...")
-            return
-
-        if not SQLite3DB().count_queue():
-            await interaction.followup.send("A fila acabou...")
-            return
-
-        try:
-            next_url = await self.bot.loop.run_in_executor(None, lambda: SQLite3DB().get_current_queue_music())
-            player = await YTDLSource.from_url(next_url, loop=self.bot.loop, stream=True)
-
-            voice_client.play(player, after=lambda e: asyncio.run_coroutine_threadsafe(self.after_song_finished(voice_client, e, interaction), self.bot.loop))
-
-            await interaction.followup.send(f"🎵 Tocando próxima música na fila: **{player.title}**", view=AudioControls(voice_client))
-
-        except Exception as e:
-            print(f"Erro ao tocar próxima música da fila: {e}.\n Limpando a fila e saindo... 😢")
-            await interaction.followup.send(f"❌ Erro ao tocar próxima música da fila: {str(e)}.\n Limpando a fila e saindo... 😢")
-            await self.bot.loop.run_in_executor(None, lambda: SQLite3DB().nuking_queue())
-            await voice_client.disconnect()
-            return
-
     @app_commands.command(name="play", description="Toca uma música ou playlist 🎶.")
-    @app_commands.describe(url="URL da música ou playlist")
-    async def play_music(self, interaction: discord.Interaction, url: str):
+    async def play(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
-        await self.bot.loop.run_in_executor(None, lambda: SQLite3DB().append_to_queue(url, str(interaction.user)))
+        queue = SQLite3DB().get_queue()
 
-        try:
-            (voice_client, voice_channel) = await Utils.connect_to_channel(interaction)
+        (voice_client, voice_channel) = await Utils.connect_to_channel(interaction)
 
-        except Exception as e:
-            await interaction.followup.send(f"Erro: {e}")
-            return
+        while len(queue) != 0:
+            await self.play_loop(interaction, voice_client)
 
-        next_song = await self.bot.loop.run_in_executor(None, lambda: SQLite3DB().get_current_queue_music())
-
-        player = await YTDLSource.from_url(next_song, loop=self.bot.loop, stream=True)
-
-        try:
-            if not voice_client.is_playing():
-                voice_client.play(player, after=lambda e: asyncio.run_coroutine_threadsafe(
-                    self.after_song_finished(voice_client, e, interaction), self.bot.loop
-                ))
-
-                await interaction.followup.send(f"🎵 Tocando: **{player.title}**",
-                                                view=AudioControls(voice_client))
-            else:
-                await interaction.followup.send(f"🎵 Adicionado à fila: **{player.data.get('title', 'Música')}**")
-
-        except Exception as e:
-            if voice_client and voice_client.is_connected() and not voice_client.is_playing():
-                await voice_client.disconnect()
-            await interaction.followup.send(f"❌ Erro: {str(e)}")
 
     @app_commands.command(name="skip", description="Pula para a próxima música da fila. 🦘.")
     async def skip(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
-        (voice_client, voice_channel) = await Utils.connect_to_channel(interaction)
-
-        if not voice_client or not voice_client.is_connected():
-            await interaction.followup.send("Não estou conectado a um canal de voz.")
-            return
-
-        if not voice_client.is_playing():
-            await interaction.followup.send("Nada para pular.")
-            return
-
-        try:
-            voice_client.stop()
-            SQLite3DB().remove_current_music()
-            await self.play_next_in_queue(interaction, voice_client)
-
-            await interaction.followup.send("Música pulada. Tocando a próxima na fila...")
-
-        except Exception as e:
-            await interaction.followup.send(f"❌ Erro ao pular música: {str(e)}")
-            print(f"Erro em skip: {e}")
+        await interaction.followup.send("Ainda estamos implementando o skip, volte mais tarde...")
 
     @app_commands.command(name="queue", description="Mostra a fila de músicas 🎶.")
     async def view_queue(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
-        queue_list = await self.bot.loop.run_in_executor(None, lambda: SQLite3DB().get_queue())
+        queue = SQLite3DB().get_queue()
 
-        if not queue_list:
+        if len(queue) == 0:
             await interaction.followup.send("A fila de músicas está vazia! 🎶")
             return
 
@@ -132,14 +49,66 @@ class Music(app_commands.Group):
         )
 
         description_text = ""
-        for i, item in enumerate(queue_list):
-            description_text += f"{i + 1}. **{item['url']}** (Adicionado por: {item['user']})\n"
+
+        for i, item in enumerate(queue):
+            description_text += f"{i+1} - {limit_str_len(item.title)} - User: {item.user}\n"
             if len(description_text) > 1900:
-                description_text += "\n... e mais."
+                description_text += "/n... e mais."
                 break
 
         embed.description = description_text
         await interaction.followup.send(embed=embed)
+
+    @app_commands.command(name="add", description="Adiciona música na fila 🎶.")
+    @app_commands.describe(url="URL da música")
+    async def add(self, interaction: discord.Interaction, url: str):
+        await interaction.response.defer()
+
+        if not url:
+            return
+
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.head(url) as response:
+                    if response.status != 200:
+                        await interaction.followup.send("❌ URL não encontrada ou inacessível.")
+                        return
+                    data = await YTDLSource.from_url(url)
+
+            except Exception as e:
+                await interaction.followup.send(f"❌ URL inválida. Erro: {e}")
+                return
+
+        title = str(data.title)
+        username = str(interaction.user.display_name)
+        SQLite3DB().append_to_queue(url, title, username)
+        await interaction.followup.send(f"Adicionei a música {title} à fila com sucesso.")
+
+    @app_commands.command(name="remove", description="Remove uma música da fila 🎶.")
+    @app_commands.describe(title="Título da música")
+    @app_commands.autocomplete(title=on_search_queue)
+    async def remove(self, interaction: discord.Interaction, title: str):
+        await interaction.response.defer()
+
+        SQLite3DB().remove_music_by_title(title)
+
+        await interaction.followup.send(f"Deletei a música: {title} da fila.")
+
+
+    async def play_loop(self, interaction: discord.Interaction, voice_client: discord.VoiceClient):
+        queue = SQLite3DB().get_queue()
+
+        if not queue[0]:
+            await interaction.followup.send("Acabou a fila.")
+            return
+
+        player = await YTDLSource.from_url(queue[0].url, loop=self.bot.loop, stream=True)
+        voice_client.play(player)
+
+        while voice_client.is_playing():
+            await asyncio.sleep(1)
+
+        SQLite3DB().set_played(queue[0].id)
 
 def setup(bot):
     bot.tree.add_command(Music(bot))

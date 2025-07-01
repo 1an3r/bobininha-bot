@@ -3,7 +3,7 @@ from database.SQLite3 import SQLite3DB
 import discord
 
 
-async def on_search(interaction: discord.Interaction, current: str):
+async def on_search_sound(interaction: discord.Interaction, current: str):
     try:
         all_audios = list(SQLite3DB().get_soundboard_db())
         suggestions = []

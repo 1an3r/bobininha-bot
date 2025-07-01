@@ -6,7 +6,7 @@ from discord import app_commands
 from discord.ext import commands
 from classes.Utils import Utils
 from classes.YTDLSource import YTDLSource
-from database.on_search import on_search
+from database.on_search import on_search_sound
 from database.SQLite3 import SQLite3DB
 
 # DESCRIPTION: Grupo de comandos Sound; Sound play: Toca um meme da base de dados; Sound add: Coloca um meme na base de dados. Sound remove: Remove um meme da base de dados; Sound list: Lista todos os memes na base de dados.
@@ -18,7 +18,7 @@ class Sound(app_commands.Group):
 
     @app_commands.command(name="play", description="Toca um meme 🔈.")
     @app_commands.describe(name="Nome do meme")
-    @app_commands.autocomplete(name=on_search)
+    @app_commands.autocomplete(name=on_search_sound)
     async def play(self, interaction: discord.Interaction, name: str):
         await interaction.response.defer()
 
@@ -109,7 +109,7 @@ class Sound(app_commands.Group):
 
     @app_commands.command(name="remove", description="Remove um meme da base de dados ➖.")
     @app_commands.describe(name="Nome do meme")
-    @app_commands.autocomplete(name=on_search)
+    @app_commands.autocomplete(name=on_search_sound)
     async def remove_audio(self, interaction: discord.Interaction, name: str):
         await interaction.response.defer()
         audio_name = name.lower()
@@ -118,7 +118,7 @@ class Sound(app_commands.Group):
             await interaction.followup.send(f"❌ Áudio '{name}' não encontrado.")
             return
 
-        SQLite3DB().remove_sound(audio_name)
+        SQLite3DB().remove_sound_by_name(audio_name)
 
         await interaction.followup.send(f"✅ Áudio '{name}' removido com sucesso!")
 

@@ -1,9 +1,13 @@
 import asyncio
-
 import discord
-
 from classes.YTDLSource import YTDLSource
 
+
+def limit_str_len(string: str, limit: int = 25):
+    if len(string) > limit:
+        return string[:limit] + "..."
+
+    return string
 
 class Utils:
     def __init__(self, bot):

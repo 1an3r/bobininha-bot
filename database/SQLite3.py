@@ -1,6 +1,8 @@
 import sqlite3
 import os
 from datetime import datetime
+from classes.Queue import Queue
+
 
 class SQLite3DB:
     def __init__(self):
@@ -29,8 +31,10 @@ class SQLite3DB:
             CREATE TABLE IF NOT EXISTS queue (
                 id         INTEGER PRIMARY KEY AUTOINCREMENT,
                 url        TEXT NOT NULL,
+                title      TEXT NOT NULL,
                 user       TEXT NOT NULL,
-                created_at DATE NOT NULL
+                created_at DATE NOT NULL,
+                played     BOOLEAN DEFAULT FALSE
             );
         """)
         self.conn.commit()
@@ -46,14 +50,19 @@ class SQLite3DB:
         except sqlite3.IntegrityError:
             print(f"[AVISO] '{name}' ou URL já existente no banco.")
 
-    def remove_sound(self, name: str):
+    def remove_sound_by_name(self, name: str):
         cursor = self.conn.cursor()
         cursor.execute("DELETE FROM soundboard WHERE name = ?", (name.lower(),))
         self.conn.commit()
 
-    def remove_music(self, url: str):
+    def remove_music_by_url(self, url: str):
         cursor = self.conn.cursor()
         cursor.execute("DELETE FROM queue WHERE url = ?", (url,))
+        self.conn.commit()
+
+    def remove_music_by_title(self, title: str):
+        cursor = self.conn.cursor()
+        cursor.execute("DELETE FROM queue WHERE id = (SELECT id FROM queue WHERE title = ? ORDER BY created_at LIMIT 1)", (title,))
         self.conn.commit()
 
     def get_all_sound_names(self):
@@ -71,18 +80,24 @@ class SQLite3DB:
         cursor.execute("SELECT url FROM queue")
         return "\n".join([f".{row[0]}" for row in cursor.fetchall()])
 
+    def get_all_music_titles(self):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT title FROM queue")
+        title_list = cursor.fetchall()
+        return title_list
+
     def get_soundboard_db(self):
         cursor = self.conn.cursor()
         cursor.execute("SELECT name, url FROM soundboard")
         return {name: url for name, url in cursor.fetchall()}
 
-    def get_queue_columns(self):
+    def get_queue(self):
         cursor = self.conn.cursor()
-        cursor.execute("SELECT url, user, created_at FROM queue")
+        cursor.execute("SELECT * FROM queue WHERE played IS FALSE ORDER BY created_at")
         rows = cursor.fetchall()
         return [
-            {"url": url, "user": user, "created_at": created_at.split(" ")[0]}
-            for url, user, created_at in rows
+            Queue(id=row[0], url=row[1], title=row[2], user=row[3], created_at=row[4])
+            for row in rows
         ]
 
     def get_soundboard_db_columns(self):
@@ -111,9 +126,9 @@ class SQLite3DB:
         result = cursor.fetchone()
         return result[0] if result else None
 
-    def append_to_queue(self, url: str, user: str):
+    def append_to_queue(self, url: str, title: str, user: str):
         cursor = self.conn.cursor()
-        cursor.execute("INSERT INTO queue (url, user, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)", (url, user))
+        cursor.execute("INSERT INTO queue (url, title, user, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)", (url, title, user))
         self.conn.commit()
 
     def remove_current_music(self):
@@ -124,13 +139,12 @@ class SQLite3DB:
     def count_queue(self):
         cursor = self.conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM queue")
-        return cursor.fetchone()[0] if cursor.fetchone() else None
+        return cursor.fetchone() if cursor.fetchone() else 0
 
-    def get_queue(self):
+    def nuking_queue_table(self):
         cursor = self.conn.cursor()
-        cursor.execute("SELECT url, user FROM queue ORDER BY created_at")
-        return [{"url": row[0], "user": row[1]} for row in cursor.fetchall()]
+        cursor.execute("DELETE FROM queue")
 
-    def nuking_queue(self):
+    def set_played(self, music_id):
         cursor = self.conn.cursor()
-        cursor.execute("DELETE FROM queue WHERE id = *")
+        cursor.execute("UPDATE queue SET played = ? WHERE id = ?", (True, music_id))

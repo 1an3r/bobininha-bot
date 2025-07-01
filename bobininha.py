@@ -5,6 +5,8 @@ from database.JSONDatabase import JSONDatabase
 import os
 import importlib
 
+from database.SQLite3 import SQLite3DB
+
 load_dotenv(".env")
 
 intents = discord.Intents.default()
@@ -26,6 +28,7 @@ load_commands(bot)
 async def on_ready():
     print(f'{bot.user} conectou ao Discord!')
     JSONDatabase()
+    SQLite3DB()
 
     try:
         synced = await bot.tree.sync()
