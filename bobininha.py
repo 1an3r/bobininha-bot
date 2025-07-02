@@ -28,6 +28,7 @@ LOGGING_CONFIG = {
             'level': 'DEBUG',
             'filename': 'bobininha.log',
             'mode': 'w',
+            'encoding': 'utf-8'
         }
     },
 
@@ -39,6 +40,11 @@ LOGGING_CONFIG = {
             },
             'asyncio': {
                 'level': 'WARNING',
+                'handlers': ['console', 'file'],
+                'propagate': False
+            },
+            'commands.Music': {
+                'level': 'DEBUG',
                 'handlers': ['console', 'file'],
                 'propagate': False
             }
