@@ -13,6 +13,7 @@ class Utils:
     def __init__(self, bot):
         self.bot = bot
 
+    @staticmethod
     async def connect_to_channel(interaction: discord.Interaction) -> discord.VoiceClient:
         if not interaction.user.voice or not interaction.user.voice.channel:
             raise RuntimeError("Usuário não está conectado a um canal de voz.")

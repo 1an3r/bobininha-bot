@@ -19,7 +19,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
     ffmpeg_options = {
         'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-        'options': '-vn',
+        'options': '-vn -nostdin -extension_picky 0',
     }
 
     def __init__(self, source, *, data, volume=0.5):
@@ -29,7 +29,8 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.url = data.get('url')
 
     @classmethod
-    async def from_url(self, url, *, loop=None, stream=False):
+    async def from_url(self, url, *, loop=None, stream=False, noplaylist=True):
+        self.ytdl_format_options['noplaylist'] = noplaylist
         ytdl = yt_dlp.YoutubeDL(self.ytdl_format_options)
         loop = loop or asyncio.get_event_loop()
         data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
