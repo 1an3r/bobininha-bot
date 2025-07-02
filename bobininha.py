@@ -4,8 +4,55 @@ from dotenv import load_dotenv
 from database.JSONDatabase import JSONDatabase
 import os
 import importlib
-
 from database.SQLite3 import SQLite3DB
+import logging.config
+
+LOGGING_CONFIG = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'std': {
+            'format': '%(asctime)s: %(module)s in %(filename)s *%(levelname)s* %(funcName)s():%(lineno)d - %(message)s',
+            'datefmt': '%b %d %H:%M:%S'
+        }
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'std',
+            'level': 'INFO'
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'formatter': 'std',
+            'level': 'DEBUG',
+            'filename': 'bobininha.log',
+            'mode': 'w',
+        }
+    },
+
+    'loggers': {
+            'discord': {
+                'level': 'WARNING',
+                'handlers': ['console', 'file'],
+                'propagate': False
+            },
+            'asyncio': {
+                'level': 'WARNING',
+                'handlers': ['console', 'file'],
+                'propagate': False
+            }
+        },
+
+    'root': {
+        'handlers': ['console', 'file'],
+        'level': 'WARNING',
+    }
+}
+
+logging.config.dictConfig(LOGGING_CONFIG)
+
+logger = logging.getLogger(__name__)
 
 load_dotenv(".env")
 
