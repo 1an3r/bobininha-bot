@@ -1,4 +1,4 @@
-# Bobininha Bot: alpha 4.5.7 Fluffy Capybara
+# Bobininha Bot: alpha Fluffy Capybara
 
 ## "...Por que pagar nitro para ter mais do que 8 áudios no soundboard é um absurdo, pô."
 Bobininha é um Bot que toca memes e músicas baseados em uma URL que seja compátivel (mp3, ytb), mediante comandos de texto.

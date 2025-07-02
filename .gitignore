@@ -5,3 +5,5 @@
 *.json
 *.db
 *.pyc
+*.txt
+*.log
