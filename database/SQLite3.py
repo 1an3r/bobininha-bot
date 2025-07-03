@@ -2,7 +2,10 @@ import sqlite3
 import os
 from datetime import datetime
 from classes.Queue import Queue
+import logging
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.WARNING)
 
 class SQLite3DB:
     def __init__(self):
@@ -100,8 +103,6 @@ class SQLite3DB:
             for row in rows
         ]
 
-
-
     def get_soundboard_db_columns(self):
         cursor = self.conn.cursor()
         cursor.execute("SELECT name, url, user, created_at FROM soundboard")
@@ -128,6 +129,15 @@ class SQLite3DB:
         result = cursor.fetchone()
         return result[0] if result else None
 
+    def get_played_queue(self):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM queue WHERE played IS TRUE ORDER BY created_at DESC")
+        rows = cursor.fetchall()
+        return [
+            Queue(id=row[0], url=row[1], title=row[2], user=row[3], created_at=row[4])
+            for row in rows
+        ]
+
     def append_to_queue(self, url: str, title: str, user: str):
         cursor = self.conn.cursor()
         cursor.execute("INSERT INTO queue (url, title, user, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)", (url, title, user))
@@ -147,6 +157,7 @@ class SQLite3DB:
     def nuking_queue_table(self):
         cursor = self.conn.cursor()
         cursor.execute("DELETE FROM queue")
+        self.conn.commit()
 
     def debugging_queue(self):
         cursor = self.conn.cursor()
@@ -155,5 +166,6 @@ class SQLite3DB:
 
     def set_played(self, music_id):
         cursor = self.conn.cursor()
-        cursor.execute("UPDATE queue SET played = ? WHERE id = ?", (True, music_id))
+        cursor.execute("UPDATE queue SET played = TRUE WHERE id = ?", (music_id, ))
+        logger.debug("Connection inside set_played: %s", cursor.connection)
         self.conn.commit()

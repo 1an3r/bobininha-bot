@@ -29,7 +29,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.url = data.get('url')
 
     @classmethod
-    async def from_url(self, url, *, loop=None, stream=False, noplaylist=True):
+    async def from_url(self, url, *, loop=None, stream=True, noplaylist=True):
         self.ytdl_format_options['noplaylist'] = noplaylist
         ytdl = yt_dlp.YoutubeDL(self.ytdl_format_options)
         loop = loop or asyncio.get_event_loop()

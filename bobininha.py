@@ -5,60 +5,26 @@ from database.JSONDatabase import JSONDatabase
 import os
 import importlib
 from database.SQLite3 import SQLite3DB
-import logging.config
+from logging import config, getLogger
+from yaml import safe_load, YAMLError
 
-LOGGING_CONFIG = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'std': {
-            'format': '%(asctime)s: %(module)s in %(filename)s *%(levelname)s* %(funcName)s():%(lineno)d - %(message)s',
-            'datefmt': '%b %d %H:%M:%S'
-        }
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'std',
-            'level': 'INFO'
-        },
-        'file': {
-            'class': 'logging.FileHandler',
-            'formatter': 'std',
-            'level': 'DEBUG',
-            'filename': 'bobininha.log',
-            'mode': 'w',
-            'encoding': 'utf-8'
-        }
-    },
 
-    'loggers': {
-            'discord': {
-                'level': 'WARNING',
-                'handlers': ['console', 'file'],
-                'propagate': False
-            },
-            'asyncio': {
-                'level': 'WARNING',
-                'handlers': ['console', 'file'],
-                'propagate': False
-            },
-            'commands.Music': {
-                'level': 'DEBUG',
-                'handlers': ['console', 'file'],
-                'propagate': False
-            }
-        },
+def config_loggers():
+    try:
+        with open('logger_config.yaml') as f:
+            yaml_config = safe_load(f)
+        config.dictConfig(yaml_config)
 
-    'root': {
-        'handlers': ['console', 'file'],
-        'level': 'WARNING',
-    }
-}
+    except FileNotFoundError as e:
+        print("logging file not found: %s", e)
 
-logging.config.dictConfig(LOGGING_CONFIG)
+    except YAMLError as e:
+        print("Error parsing yaml configuration file: %s", e)
 
-logger = logging.getLogger(__name__)
+    except Exception as e:
+        print("Unexpected error: %s", e)
+
+logger = getLogger(__name__)
 
 load_dotenv(".env")
 
@@ -101,5 +67,5 @@ if __name__ == "__main__":
         print("❌ Token do bot não encontrado!")
         print("Crie um arquivo .env com: DISCORD_TOKEN=seu_token_aqui")
         exit(1)
-
+    config_loggers()
     bot.run(token)
