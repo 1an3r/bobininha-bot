@@ -6,7 +6,6 @@ import discord
 async def on_search_queue(interaction: discord.Interaction, cur_keyword: str):
     try:
         music_queue = SQLite3DB().get_queue()
-        print(f"This is the music queue: {music_queue}")
         suggestions = []
 
         if 0 < len(cur_keyword) < 3:

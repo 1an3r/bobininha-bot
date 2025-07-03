@@ -27,8 +27,9 @@ class Music(app_commands.Group):
 
             if queue_size == 0:
                 await interaction.followup.send("Não existe uma fila para ser tocada.")
-                SQLite3DB().debugging_queue()
-                queue_size = SQLite3DB().count_queue()
+                SQLite3DB().nuking_queue_table()
+                logger.info("Nuking the queue table contents since it was called without any suitable members.")
+                return
 
             (voice_client, voice_channel) = await Utils.connect_to_channel(interaction)
             logger.info("Voice client connected as %s in channel %s", voice_client, voice_channel)
@@ -97,7 +98,10 @@ class Music(app_commands.Group):
             else:
                 logger.info("Player Source set as: %s;", song.url)
 
-            await interaction.followup.send(f"Tocando... {player.data["title"]} | {player.data["duration"]}")
+
+            seconds = int(player.data["duration"])
+            formatted_time_string = f"{(seconds // 60):02d}:{(seconds % 60):02d}"
+            await interaction.followup.send(f"Tocando... [{limit_str_len(player.data["title"])}] from {player.data["artist"]} | Duração: {formatted_time_string}")
 
             voice_client.play(player)
 
@@ -139,6 +143,14 @@ class Music(app_commands.Group):
                 logger.exception("Exception Error: ")
                 return
 
+        queue_size = SQLite3DB().count_queue()
+
+        if queue_size == 0:
+            SQLite3DB().nuking_queue_table()
+            logger.info("Nuking queue table contents since the player ended.")
+            await interaction.followup.send("A música acabou, mas não fique triste. Chame /music add para colocar a próxima, /music play para eu tocar ela, e seremos felizes para sempre 😁.")
+            return
+
     @app_commands.command(name="queue", description="Mostra a fila de músicas 🎶.")
     async def view_queue(self, interaction: discord.Interaction):
         await interaction.response.defer()
@@ -174,26 +186,27 @@ class Music(app_commands.Group):
     @app_commands.describe(url="URL da música")
     async def add(self, interaction: discord.Interaction, url: str):
         await interaction.response.defer()
-
-        if not url:
-            return
-
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.head(url) as response:
                     if response.status != 200:
                         await interaction.followup.send("❌ URL não encontrada ou inacessível.")
                         return
-                    data = await YTDLSource.from_url(url)
 
-            except Exception as e:
-                await interaction.followup.send(f"❌ URL inválida. Erro: {e}")
+                    player = await YTDLSource.from_url(url, skip_download=True)
+                    logger.info("Data object fetched: %s", player)
+
+                    title = str(player.data["title"])
+                    username = str(interaction.user.display_name)
+                    seconds = int(player.data["duration"])
+                    formatted_time_string = f"{(seconds // 60):02d}:{(seconds % 60):02d}"
+
+            except Exception:
+                logger.exception("Threw broad Exception: ")
                 return
 
-        title = str(data.title)
-        username = str(interaction.user.display_name)
         SQLite3DB().append_to_queue(url, title, username)
-        await interaction.followup.send(f"Adicionei a música {title} à fila com sucesso.")
+        await interaction.followup.send(f"Adicionei a música {limit_str_len(title)} - {formatted_time_string} à fila com sucesso.")
 
     @app_commands.command(name="remove", description="Remove uma música da fila 🎶.")
     @app_commands.describe(title="Título da música")
@@ -205,6 +218,13 @@ class Music(app_commands.Group):
 
         await interaction.followup.send(f"Deletei a música: {title} da fila.")
 
+    @app_commands.command(name="clear", description="Limpa a fila 🧹.")
+    async def clear(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        SQLite3DB().nuking_queue_table()
+
+        await interaction.followup.send(f"Limpei toda a fila de músicas, espero que você saiba o que está fazendo... 😱")
 
 def setup(bot):
     bot.tree.add_command(Music(bot))
