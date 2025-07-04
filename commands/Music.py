@@ -98,10 +98,7 @@ class Music(app_commands.Group):
             else:
                 logger.info("Player Source set as: %s;", song.url)
 
-
-            seconds = int(player.data["duration"])
-            formatted_time_string = f"{(seconds // 60):02d}:{(seconds % 60):02d}"
-            await interaction.followup.send(f"Tocando... [{limit_str_len(player.data["title"])}] from {player.data["artist"]} | Duração: {formatted_time_string}")
+            await interaction.followup.send(f"Tocando... [{limit_str_len(player.data["title"])}]")
 
             voice_client.play(player)
 
@@ -193,12 +190,11 @@ class Music(app_commands.Group):
                         await interaction.followup.send("❌ URL não encontrada ou inacessível.")
                         return
 
-                    player = await YTDLSource.from_url(url, skip_download=True)
-                    logger.info("Data object fetched: %s", player)
+                    data = await YTDLSource.extract_info_async(url)
 
-                    title = str(player.data["title"])
+                    title = str(data["title"])
                     username = str(interaction.user.display_name)
-                    seconds = int(player.data["duration"])
+                    seconds = int(data["duration"])
                     formatted_time_string = f"{(seconds // 60):02d}:{(seconds % 60):02d}"
 
             except Exception:
