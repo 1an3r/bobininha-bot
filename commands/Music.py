@@ -160,6 +160,7 @@ class Music(app_commands.Group):
     @app_commands.command(name="queue", description="Mostra a fila de músicas 🎶.")
     async def view_queue(self, interaction: discord.Interaction):
         await interaction.response.defer()
+        logger.info("Called /music queue.")
         try:
             queue = SQLite3DB().get_queue()
             queue_size = SQLite3DB().count_queue()
