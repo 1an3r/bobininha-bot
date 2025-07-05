@@ -83,7 +83,7 @@ class Music(app_commands.Group):
             logger.exception("Exception Error: ")
             return
 
-    async def play_next(self, interaction: discord.Interaction, voice_client: discord.VoiceClient, song):
+    async def play_next(self, voice_channel: discord.VoiceChannel, voice_client: discord.VoiceClient, song):
         logger.info("play_next method was called;")
         try:
             if not song.url:
@@ -103,7 +103,7 @@ class Music(app_commands.Group):
             else:
                 logger.info("Player Source set as: %s;", song.url)
 
-            await interaction.followup.send(f"Tocando... [{limit_str_len(player.data["title"])}]")
+            await voice_channel.send(f"Tocando: {limit_str_len(player.data['title'], limit=50)}.")
 
             voice_client.play(player)
 
@@ -122,7 +122,7 @@ class Music(app_commands.Group):
             logger.exception("Exception Error: ")
             return
 
-    async def play_queue(self, interaction: discord.Interaction, voice_client: discord.VoiceClient, queue_size: int):
+    async def play_queue(self, voice_channel: discord.VoiceChannel, voice_client: discord.VoiceClient, queue_size: int):
         logger.info("play_queue method was called")
         while queue_size > 0:
             logger.debug("entered while loop inside play_queue")
@@ -131,7 +131,7 @@ class Music(app_commands.Group):
                     song = SQLite3DB().get_queue()[0]
                     logger.debug(
                         "Fetched next song to play, retrieved as: %s", song)
-                    await self.play_next(interaction, voice_client, song)
+                    await self.play_next(voice_channel, voice_client, song)
                     queue_size = SQLite3DB().count_queue()
                     logger.debug("Queue size: %s", queue_size)
 
