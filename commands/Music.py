@@ -103,7 +103,7 @@ class Music(app_commands.Group):
             else:
                 logger.info("Player Source set as: %s;", song.url)
 
-            await voice_channel.send(f"Tocando: {limit_str_len(player.data['title'], limit=50)}.")
+            await voice_channel.send(f"Tocando: {limit_str_len(player.data['title'], limit=80)}.")
 
             voice_client.play(player)
 
@@ -154,7 +154,7 @@ class Music(app_commands.Group):
         if queue_size == 0:
             SQLite3DB().nuking_queue_table()
             logger.info("Nuking queue table contents since the player ended.")
-            await interaction.followup.send("A música acabou, mas não fique triste. Chame /music add para colocar a próxima, /music play para eu tocar ela, e seremos felizes para sempre 😁.")
+            await voice_channel.send("A música acabou, mas não fique triste. Chame /music add para colocar a próxima, /music play para eu tocar ela, e seremos felizes para sempre 😁.")
             return
 
     @app_commands.command(name="queue", description="Mostra a fila de músicas 🎶.")
