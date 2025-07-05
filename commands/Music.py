@@ -4,7 +4,6 @@ import discord
 from discord import app_commands
 from classes.Utils import Utils, limit_str_len
 from classes.YTDLSource import YTDLSource
-from classes.Controls import AudioControls
 from database.SQLite3 import SQLite3DB
 from database.on_search_music import on_search_queue
 import logging
@@ -12,27 +11,29 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-# DESCRIPTION: Grupo de comandos Music. Music play: \nToca uma música ou coloca na fila. Music skip: Pula uma música.
+
+# DESCRIPTION: Grupo de comandos Music.
 class Music(app_commands.Group):
     def __init__(self, bot):
         super().__init__(name="music", description="Toca coisinhas 😊.")
         self.bot = bot
 
-    @app_commands.command(name="play", description="Toca uma música ou playlist 🎶.")
+    @app_commands.command(name="play", description="Toca uma música")
     async def play(self, interaction: discord.Interaction):
         await interaction.response.defer()
         logger.info("/music play was called")
         try:
             queue_size = SQLite3DB().count_queue()
-
             if queue_size == 0:
                 await interaction.followup.send("Não existe uma fila para ser tocada.")
                 SQLite3DB().nuking_queue_table()
-                logger.info("Nuking the queue table contents since it was called without any suitable members.")
+                logger.info(
+                    "Nuking the queue table contents since it was called without any suitable members.")
                 return
 
             (voice_client, voice_channel) = await Utils.connect_to_channel(interaction)
-            logger.info("Voice client connected as %s in channel %s", voice_client, voice_channel)
+            logger.info("Voice client connected as %s in channel %s",
+                        voice_client, voice_channel)
 
             await interaction.followup.send(f"Chamando a bobininha para tocar.")
 
@@ -40,11 +41,13 @@ class Music(app_commands.Group):
             await self.play_queue(interaction, voice_client, queue_size)
 
         except discord.ClientException:
-            logger.exception("Discord Client Exception: Usually trying to play audio when audio is already playing...")
+            logger.exception(
+                "Discord Client Exception: Usually trying to play audio when audio is already playing...")
             return
 
         except IndexError:
-            logger.exception("Index Error: Usually trying to access an index that doesn't exist inside given list")
+            logger.exception(
+                "Index Error: Usually trying to access an index that doesn't exist inside given list")
             return
 
         except Exception:
@@ -67,11 +70,13 @@ class Music(app_commands.Group):
             logger.info("voice_client.stop() was called;")
 
         except discord.ClientException:
-            logger.exception("Discord Client Exception: Usually trying to play audio when audio is already playing;")
+            logger.exception(
+                "Discord Client Exception: Usually trying to play audio when audio is already playing;")
             return
 
         except IndexError:
-            logger.exception("Index Error: Usually trying to access an index that doesn't exist inside given list;")
+            logger.exception(
+                "Index Error: Usually trying to access an index that doesn't exist inside given list;")
             return
 
         except Exception:
@@ -109,7 +114,8 @@ class Music(app_commands.Group):
             player.cleanup()
 
         except discord.ClientException:
-            logger.exception("Discord Client Exception: Usually trying to play audio when audio is already playing...")
+            logger.exception(
+                "Discord Client Exception: Usually trying to play audio when audio is already playing...")
             return
 
         except Exception:
@@ -123,17 +129,20 @@ class Music(app_commands.Group):
             try:
                 if not voice_client.is_playing() and not voice_client.is_paused():
                     song = SQLite3DB().get_queue()[0]
-                    logger.debug("Fetched next song to play, retrieved as: %s", song)
+                    logger.debug(
+                        "Fetched next song to play, retrieved as: %s", song)
                     await self.play_next(interaction, voice_client, song)
                     queue_size = SQLite3DB().count_queue()
                     logger.debug("Queue size: %s", queue_size)
 
             except discord.ClientException:
-                logger.exception("Discord Client Exception: Usually trying to play audio when audio is already playing...")
+                logger.exception(
+                    "Discord Client Exception: Usually trying to play audio when audio is already playing...")
                 return
 
             except IndexError:
-                logger.exception("Index Error: Usually trying to access an index that doesn't exist inside given list")
+                logger.exception(
+                    "Index Error: Usually trying to access an index that doesn't exist inside given list")
                 return
 
             except Exception:
@@ -168,7 +177,8 @@ class Music(app_commands.Group):
             description_text = ""
 
             for i, item in enumerate(queue):
-                description_text += f"{i+1} - {limit_str_len(item.title)} - User: {item.user}\n"
+                description_text += f"{i+1} - {limit_str_len(item.title)} - User: {
+                    item.user}\n"
                 if len(description_text) > 1900:
                     description_text += "/n... e mais."
                     break
@@ -195,7 +205,8 @@ class Music(app_commands.Group):
                     title = str(data["title"])
                     username = str(interaction.user.display_name)
                     seconds = int(data["duration"])
-                    formatted_time_string = f"{(seconds // 60):02d}:{(seconds % 60):02d}"
+                    formatted_time_string = f"{
+                        (seconds // 60):02d}:{(seconds % 60):02d}"
 
             except Exception:
                 logger.exception("Threw broad Exception: ")
@@ -221,6 +232,7 @@ class Music(app_commands.Group):
         SQLite3DB().nuking_queue_table()
 
         await interaction.followup.send(f"Limpei toda a fila de músicas, espero que você saiba o que está fazendo... 😱")
+
 
 def setup(bot):
     bot.tree.add_command(Music(bot))
