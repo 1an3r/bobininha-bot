@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
-from database.JSONDatabase import JSONDatabase
 import os
 import importlib
 from database.SQLite3 import SQLite3DB
@@ -50,7 +49,6 @@ load_commands(bot)
 @bot.event
 async def on_ready():
     logger.info('%s conectou ao Discord!', {bot.user})
-    JSONDatabase()
     SQLite3DB()
 
     try:

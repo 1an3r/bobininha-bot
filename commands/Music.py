@@ -38,7 +38,7 @@ class Music(app_commands.Group):
             await interaction.followup.send(f"Chamando a bobininha para tocar.")
 
             logger.debug("Queue size: %s", queue_size)
-            await self.play_queue(interaction, voice_client, queue_size)
+            await self.play_queue(voice_channel, voice_client, queue_size)
 
         except discord.ClientException:
             logger.exception(
