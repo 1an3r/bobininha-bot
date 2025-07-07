@@ -1,6 +1,7 @@
 import yt_dlp
 import discord
 import asyncio
+import re
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
@@ -42,6 +43,10 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
         filename = data['url'] if stream else ytdl.prepare_filename(data)
         return self(discord.FFmpegPCMAudio(filename, **self.ffmpeg_options), data=data)
+    
+    @classmethod
+    def is_url(self, input_str: str) -> bool:
+        return re.match(r'^https?://', input_str) is not None
 
     @classmethod
     async def extract_info_async(self, url):

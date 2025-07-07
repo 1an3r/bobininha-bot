@@ -2,8 +2,7 @@ import discord
 from discord import ui, ButtonStyle
 from classes.Utils import limit_str_len
 
-
-class SearchResultView(ui.View):
+class ButtonList(ui.View):
     def __init__(self, results, interaction: discord.Interaction, callback_func):
         super().__init__(timeout=60)
         self.interaction = interaction

@@ -1,14 +1,16 @@
 import asyncio
 import aiohttp
 import discord
+import logging
+
 from discord import app_commands
+
 from classes.Utils import Utils, limit_str_len
 from classes.YTDLSource import YTDLSource
-from classes.SearchResultView import SearchResultView
+from classes.ButtonList import ButtonList
+
 from database.SQLite3 import SQLite3DB
 from database.on_search_music import on_search_queue
-import logging
-import re
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -22,7 +24,7 @@ class Music(app_commands.Group):
 
     @app_commands.command(name="play", description="Toca uma música")
     async def play(self, interaction: discord.Interaction):
-        await interaction.response.defer()
+        await interaction.response.defer(thinking=True)
         logger.info("/music play was called")
         try:
             queue_size = SQLite3DB().count_queue()
@@ -58,7 +60,7 @@ class Music(app_commands.Group):
 
     @app_commands.command(name="skip", description="Pula para a próxima música da fila. 🦘.")
     async def skip(self, interaction: discord.Interaction):
-        await interaction.response.defer()
+        await interaction.response.defer(thinking=True)
         logger.info("/music skip was called")
         try:
             (voice_client, voice_channel) = await Utils.connect_to_channel(interaction)
@@ -161,7 +163,7 @@ class Music(app_commands.Group):
 
     @app_commands.command(name="queue", description="Mostra a fila de músicas 🎶.")
     async def view_queue(self, interaction: discord.Interaction):
-        await interaction.response.defer()
+        await interaction.response.defer(thinking=True)
         logger.info("Called /music queue.")
         try:
             queue = SQLite3DB().get_queue()
@@ -198,7 +200,7 @@ class Music(app_commands.Group):
     async def add(self, interaction: discord.Interaction, url: str):
         await interaction.response.defer(thinking=True)
 
-        if self.is_url(url):
+        if YTDLSource.is_url(url):
             await self.process_url(interaction, url)
         else:
             try:
@@ -212,7 +214,7 @@ class Music(app_commands.Group):
                     description="Escolha a música clicando em um dos botões abaixo:",
                     color=discord.Color.green()
                 )
-                await interaction.followup.send(embed=embed, view=SearchResultView(results, interaction, self.process_url))
+                await interaction.followup.send(embed=embed, view=ButtonList(results, interaction, self.process_url))
             except Exception:
                 logger.exception("Erro durante a busca por palavra-chave.")
                 await interaction.followup.send("❌ Ocorreu um erro ao buscar a música.")
@@ -234,9 +236,6 @@ class Music(app_commands.Group):
         SQLite3DB().nuking_queue_table()
 
         await interaction.followup.send(f"Limpei toda a fila de músicas, espero que você saiba o que está fazendo... 😱")
-
-    def is_url(self, input_str: str) -> bool:
-        return re.match(r'^https?://', input_str) is not None
 
     async def process_url(self, interaction: discord.Interaction, url: str):
         try:
