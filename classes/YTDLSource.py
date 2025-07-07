@@ -58,3 +58,21 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
         info = await loop.run_in_executor(None, run)
         return info
+
+    @classmethod
+    async def search_youtube(self, query: str, limit: int = 10):
+        loop = asyncio.get_event_loop()
+        ydl_opts = {
+            'quiet': True,
+            'skip_download': True,
+            'extract_flat': 'in_playlist',
+            'format': 'bestaudio/best',
+            'default_search': f'ytsearch{limit}',
+        }
+
+        def run():
+            with yt_dlp.YoutubeDL(ydl_opts) as ytdl:
+                return ytdl.extract_info(query, download=False)
+
+        data = await loop.run_in_executor(None, run)
+        return data.get('entries', []) if 'entries' in data else [data]

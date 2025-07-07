@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 def setup(bot):
     @bot.tree.command(name="join", description="PÔ CARA, DENOVO CARAAA? 👻 ")
     async def invoke(interaction: discord.Interaction):
-        await interaction.response.defer()
         logger.info("Called /join")
         try:
             (voice_client, voice_channel) = await Utils.connect_to_channel(interaction)

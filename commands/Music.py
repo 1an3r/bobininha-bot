@@ -4,9 +4,11 @@ import discord
 from discord import app_commands
 from classes.Utils import Utils, limit_str_len
 from classes.YTDLSource import YTDLSource
+from classes.SearchResultView import SearchResultView
 from database.SQLite3 import SQLite3DB
 from database.on_search_music import on_search_queue
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -190,31 +192,30 @@ class Music(app_commands.Group):
         except Exception as e:
             await interaction.followup.send(f"Erro no comando queue: {e}")
 
+
     @app_commands.command(name="add", description="Adiciona música na fila 🎶.")
-    @app_commands.describe(url="URL da música")
+    @app_commands.describe(url="URL da música ou palavra-chave")
     async def add(self, interaction: discord.Interaction, url: str):
-        await interaction.response.defer()
-        async with aiohttp.ClientSession() as session:
+        await interaction.response.defer(thinking=True)
+
+        if self.is_url(url):
+            await self.process_url(interaction, url)
+        else:
             try:
-                async with session.head(url) as response:
-                    if response.status != 200:
-                        await interaction.followup.send("❌ URL não encontrada ou inacessível.")
-                        return
+                results = await YTDLSource.search_youtube(url)
+                if not results:
+                    await interaction.followup.send("❌ Nenhum resultado encontrado.")
+                    return
 
-                    data = await YTDLSource.extract_info_async(url)
-
-                    title = str(data["title"])
-                    username = str(interaction.user.display_name)
-                    seconds = int(data["duration"])
-                    formatted_time_string = f"{
-                        (seconds // 60):02d}:{(seconds % 60):02d}"
-
+                embed = discord.Embed(
+                    title="🎵 Resultados da Busca",
+                    description="Escolha a música clicando em um dos botões abaixo:",
+                    color=discord.Color.green()
+                )
+                await interaction.followup.send(embed=embed, view=SearchResultView(results, interaction, self.process_url))
             except Exception:
-                logger.exception("Threw broad Exception: ")
-                return
-
-        SQLite3DB().append_to_queue(url, title, username)
-        await interaction.followup.send(f"Adicionei a música {limit_str_len(title)} - {formatted_time_string} à fila com sucesso.")
+                logger.exception("Erro durante a busca por palavra-chave.")
+                await interaction.followup.send("❌ Ocorreu um erro ao buscar a música.")
 
     @app_commands.command(name="remove", description="Remove uma música da fila 🎶.")
     @app_commands.describe(title="Título da música")
@@ -233,6 +234,33 @@ class Music(app_commands.Group):
         SQLite3DB().nuking_queue_table()
 
         await interaction.followup.send(f"Limpei toda a fila de músicas, espero que você saiba o que está fazendo... 😱")
+
+    def is_url(self, input_str: str) -> bool:
+        return re.match(r'^https?://', input_str) is not None
+
+    async def process_url(self, interaction: discord.Interaction, url: str):
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.head(url) as response:
+                    if response.status != 200:
+                        await interaction.followup.send("❌ URL não encontrada ou inacessível.")
+                        return
+
+            data = await YTDLSource.extract_info_async(url)
+            title = str(data["title"])
+            username = str(interaction.user.display_name)
+            seconds = int(data["duration"])
+            formatted_time_string = f"{(seconds // 60):02d}:{(seconds % 60):02d}"
+
+            SQLite3DB().append_to_queue(url, title, username)
+
+            await interaction.followup.send(
+                f"✅ Adicionei **{limit_str_len(title)}** - `{formatted_time_string}` à fila com sucesso."
+            )
+
+        except Exception:
+            logger.exception("Erro ao processar a URL.")
+            await interaction.followup.send("❌ Ocorreu um erro ao processar a música.")
 
 
 def setup(bot):
