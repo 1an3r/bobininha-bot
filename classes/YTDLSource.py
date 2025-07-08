@@ -22,7 +22,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
     ffmpeg_options = {
         'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-        'options': '-vn -nostdin',
+        'options': '-vn -nostdin -nodisplay',
     }
 
     def __init__(self, source, *, data, volume=0.5):
@@ -43,7 +43,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
         filename = data['url'] if stream else ytdl.prepare_filename(data)
         return self(discord.FFmpegPCMAudio(filename, **self.ffmpeg_options), data=data)
-    
+
     @classmethod
     def is_url(self, input_str: str) -> bool:
         return re.match(r'^https?://', input_str) is not None
