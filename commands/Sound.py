@@ -43,7 +43,7 @@ class Sound(app_commands.Group):
                 logger.warning("Sound %s not found", name)
                 return
 
-            await interaction.followup.send(f"🎵 Tocando som: {name}") a
+            await interaction.followup.send(f"🎵 Tocando som: {name}")
             await Utils(self.bot).player_call(voice_client, url)
 
         except Exception:
