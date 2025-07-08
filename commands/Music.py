@@ -234,10 +234,14 @@ class Music(app_commands.Group):
     @app_commands.autocomplete(title=on_search_queue)
     async def remove(self, interaction: discord.Interaction, title: str):
         await interaction.response.defer()
+        db = SQLite3DB().get_queue()
 
-        SQLite3DB().remove_music_by_title(title)
+        if interaction.user.display_name == db[0].user:
+            SQLite3DB().remove_music_by_title(title)
+            await interaction.followup.send(f"Deletei a música: {title} da fila.")
+            return
 
-        await interaction.followup.send(f"Deletei a música: {title} da fila.")
+        await interaction.followup.send("Você não enviou essa música para a queue, logo você não tem permissão para removê-la. Pense na diversão do amiguinho também. 😐")
 
     @app_commands.command(name="clear", description="Limpa a fila 🧹.")
     async def clear(self, interaction: discord.Interaction):
