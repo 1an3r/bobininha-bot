@@ -1,9 +1,11 @@
 import discord
 from discord import ui, ButtonStyle
 from classes.Utils import limit_str_len
+import logging
 
+logger = logging.getLogger(__name__)
 
-class SearchResultView(ui.View):
+class ButtonList(ui.View):
     def __init__(self, results, interaction: discord.Interaction, callback_func):
         super().__init__(timeout=60)
         self.interaction = interaction
@@ -11,7 +13,7 @@ class SearchResultView(ui.View):
 
         for i, entry in enumerate(results):
             button = ui.Button(
-                label=limit_str_len(entry.get("title", f"Resultado {i+1}")),
+                label=limit_str_len(entry.get("title", f"Resultado {i+1}"), 999),
                 style=ButtonStyle.primary
             )
             button.callback = self.make_callback(entry["url"])
