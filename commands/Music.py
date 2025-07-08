@@ -200,7 +200,7 @@ class Music(app_commands.Group):
     @app_commands.command(name="add", description="Adiciona música na fila 🎶.")
     @app_commands.describe(music="URL da música ou palavra-chave")
     async def add(self, interaction: discord.Interaction, music: str):
-        await interaction.response.defer(thinking=True)
+        await interaction.response.defer(thinking=False)
 
         if YTDLSource.is_url(music):
             await self.process_url(interaction, music)
@@ -277,5 +277,4 @@ class Music(app_commands.Group):
 
 
 def setup(bot):
-    bot.tree.add_command(Music(bot))
     bot.tree.add_command(Music(bot))
