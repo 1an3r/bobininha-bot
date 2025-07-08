@@ -198,15 +198,15 @@ class Music(app_commands.Group):
             await interaction.followup.send(f"Erro no comando queue: {e}")
 
     @app_commands.command(name="add", description="Adiciona música na fila 🎶.")
-    @app_commands.describe(url="URL da música ou palavra-chave")
-    async def add(self, interaction: discord.Interaction, url: str):
+    @app_commands.describe(music_keyword="URL da música ou palavra-chave")
+    async def add(self, interaction: discord.Interaction, music_keyword: str):
         await interaction.response.defer(thinking=True)
 
-        if YTDLSource.is_url(url):
-            await self.process_url(interaction, url)
+        if YTDLSource.is_url(music_keyword):
+            await self.process_url(interaction, music_keyword)
         else:
             try:
-                results = await YTDLSource.search_youtube(url)
+                results = await YTDLSource.search_youtube(music_keyword)
                 if not results:
                     await interaction.followup.send("❌ Nenhum resultado encontrado.")
                     return
@@ -217,9 +217,11 @@ class Music(app_commands.Group):
                     color=discord.Color.green()
                 )
                 await interaction.followup.send(embed=embed, view=ButtonList(results, interaction, self.process_url))
+
             except Exception:
-                logger.exception("Erro durante a busca por palavra-chave.")
+                logger.exception("Error during keyword search.")
                 await interaction.followup.send("❌ Ocorreu um erro ao buscar a música.")
+                return
 
     @app_commands.command(name="remove", description="Remove uma música da fila 🎶.")
     @app_commands.describe(title="Título da música")
