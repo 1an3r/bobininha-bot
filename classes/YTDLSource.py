@@ -22,7 +22,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
     ffmpeg_options = {
         'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-        'options': '-vn -nostdin -nodisplay',
+        'options': '-vn -nostdin -nodisp',
     }
 
     def __init__(self, source, *, data, volume=0.5):
