@@ -28,9 +28,9 @@ class Music(app_commands.Group):
             queue_size = SQLite3DB().count_queue()
             if queue_size == 0:
                 await interaction.followup.send("Não existe uma fila para ser tocada.")
-                SQLite3DB().nuking_queue_table()
-                logger.info(
-                    "Nuking the queue table contents since it was called without any suitable members.")
+                # SQLite3DB().nuking_queue_table()
+                # logger.info("Nuking the queue table contents since it was called without any suitable members.")
+                logger.info("Called play without a queue, returning.")
                 return
 
             (voice_client, voice_channel) = await Utils.connect_to_channel(interaction)
@@ -154,8 +154,10 @@ class Music(app_commands.Group):
         queue_size = SQLite3DB().count_queue()
 
         if queue_size == 0:
-            SQLite3DB().nuking_queue_table()
-            logger.info("Nuking queue table contents since the player ended.")
+            # SQLite3DB().nuking_queue_table()
+            # logger.info("Nuking queue table contents since the player ended.")
+            logger.info(
+                "Playing_queue loop ended without a queue left to play")
             await voice_channel.send("A música acabou, mas não fique triste. Chame /music add para colocar a próxima, /music play para eu tocar ela, e seremos felizes para sempre 😁.")
             return
 
@@ -230,7 +232,7 @@ class Music(app_commands.Group):
     async def clear(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
-        SQLite3DB().nuking_queue_table()
+        # SQLite3DB().nuking_queue_table()
 
         await interaction.followup.send(f"Limpei toda a fila de músicas, espero que você saiba o que está fazendo... 😱")
 

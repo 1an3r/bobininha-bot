@@ -67,16 +67,6 @@ class SQLite3DB:
             "DELETE FROM queue WHERE id = (SELECT id FROM queue WHERE title = ? ORDER BY created_at LIMIT 1)", (title,))
         self.conn.commit()
 
-    def get_all_sound_names(self):
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT name FROM soundboard")
-        return "\n".join([f"• {row[0]}" for row in cursor.fetchall()])
-
-    def get_all_sound_urls(self):
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT url FROM soundboard")
-        return "\n".join([f".{row[0]}" for row in cursor.fetchall()])
-
     def get_soundboard_db(self):
         cursor = self.conn.cursor()
         cursor.execute(
@@ -98,29 +88,6 @@ class SQLite3DB:
                   user=row[3], created_at=row[4])
             for row in rows
         ]
-
-    def get_soundboard_db_columns(self):
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT name, url, user, created_at FROM soundboard")
-        rows = cursor.fetchall()
-        return [
-            {"name": name, "url": url, "user": user, "created_at": created_at.split(" ")[
-                0]}
-            for name, url, user, created_at in rows
-        ]
-
-    def get_sound_by_name(self, name: str):
-        cursor = self.conn.cursor()
-        cursor.execute(
-            "SELECT url FROM soundboard WHERE name = ?", (name.lower(),))
-        result = cursor.fetchone()
-        return result[0] if result else None
-
-    def get_sound_by_url(self, url: str):
-        cursor = self.conn.cursor()
-        cursor.execute(
-            "SELECT name FROM soundboard WHERE url = ?", (url.strip(),))
-        return [row[0] for row in cursor.fetchall()]
 
     def append_to_queue(self, url: str, title: str, user: str):
         cursor = self.conn.cursor()
