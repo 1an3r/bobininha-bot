@@ -209,6 +209,12 @@ class Music(app_commands.Group):
                 results = await YTDLSource.search_youtube(music)
                 if not results:
                     await interaction.followup.send("❌ Nenhum resultado encontrado.")
+                    logger.warning("Didn't found a result.")
+                    return
+
+                if music.startswith("!"):
+                    self.process_url(interaction, results[0])
+                    await interaction.followup.send("Ohhh eu vejo que você se sente com sorte, não é mesmo?🥵")
                     return
 
                 embed = discord.Embed(
@@ -216,11 +222,11 @@ class Music(app_commands.Group):
                     description="Escolha a música clicando em um dos botões abaixo:",
                     color=discord.Color.green()
                 )
+
                 await interaction.followup.send(embed=embed, view=ButtonList(results, interaction, self.process_url))
 
             except Exception:
                 logger.exception("Error during keyword search.")
-                await interaction.followup.send("❌ Ocorreu um erro ao buscar a música.")
                 return
 
     @app_commands.command(name="remove", description="Remove uma música da fila 🎶.")
@@ -271,4 +277,5 @@ class Music(app_commands.Group):
 
 
 def setup(bot):
+    bot.tree.add_command(Music(bot))
     bot.tree.add_command(Music(bot))
