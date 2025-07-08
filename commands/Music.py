@@ -63,7 +63,7 @@ class Music(app_commands.Group):
         await interaction.response.defer(thinking=True)
         logger.info("/music skip was called")
         try:
-            (voice_client, voice_channel) = await Utils.connect_to_channel(interaction)
+            (voice_client, _) = await Utils.connect_to_channel(interaction)
             if not voice_client.is_playing() and not voice_client.is_paused():
                 await interaction.followup.send("Eu não estou tocando nada...☹️")
                 logger.warning("Voice client is not playing;")
@@ -127,7 +127,7 @@ class Music(app_commands.Group):
             return
 
     async def play_queue(self, voice_channel: discord.VoiceChannel, voice_client: discord.VoiceClient, queue_size: int):
-        logger.info("play_queue method was called")
+        logger.info("play_queue method was called: %s, %s, %s", voice_channel, voice_client, queue_size)
         while queue_size > 0:
             logger.debug("entered while loop inside play_queue")
             try:
@@ -238,6 +238,7 @@ class Music(app_commands.Group):
         await interaction.followup.send(f"Limpei toda a fila de músicas, espero que você saiba o que está fazendo... 😱")
 
     async def process_url(self, interaction: discord.Interaction, url: str):
+        logger.info("callback was called with URL: %s", url)
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.head(url) as response:
@@ -246,11 +247,13 @@ class Music(app_commands.Group):
                         return
 
             data = await YTDLSource.extract_info_async(url)
+            #logger.warning("Data extracted from URL: %s", data)
             title = str(data["title"])
             username = str(interaction.user.display_name)
             seconds = int(data["duration"])
             formatted_time_string = f"{(seconds // 60):02d}:{(seconds % 60):02d}"
-
+            
+            logger.debug("Adding song to queue: %s by %s", title, username)
             SQLite3DB().append_to_queue(url, title, username)
 
             await interaction.followup.send(
