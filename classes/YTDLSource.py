@@ -7,6 +7,16 @@ import re
 class YTDLSource(discord.PCMVolumeTransformer):
     ytdl_format_options = {
         'format': 'bestaudio/best',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'opus',
+            'preferredquality': '192',
+        },
+            {
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
         'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
         'restrictfilenames': True,
         'noplaylist': True,
