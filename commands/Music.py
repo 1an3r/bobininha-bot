@@ -198,15 +198,15 @@ class Music(app_commands.Group):
             await interaction.followup.send(f"Erro no comando queue: {e}")
 
     @app_commands.command(name="add", description="Adiciona música na fila 🎶.")
-    @app_commands.describe(music_keyword="URL da música ou palavra-chave")
-    async def add(self, interaction: discord.Interaction, music_keyword: str):
+    @app_commands.describe(music="URL da música ou palavra-chave")
+    async def add(self, interaction: discord.Interaction, music: str):
         await interaction.response.defer(thinking=True)
 
-        if YTDLSource.is_url(music_keyword):
-            await self.process_url(interaction, music_keyword)
+        if YTDLSource.is_url(music):
+            await self.process_url(interaction, music)
         else:
             try:
-                results = await YTDLSource.search_youtube(music_keyword)
+                results = await YTDLSource.search_youtube(music)
                 if not results:
                     await interaction.followup.send("❌ Nenhum resultado encontrado.")
                     return
