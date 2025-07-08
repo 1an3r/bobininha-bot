@@ -9,12 +9,15 @@ async def on_search_queue(interaction: discord.Interaction, cur_keyword: str):
         suggestions = []
 
         if 0 < len(cur_keyword) < 3:
-            short_music_titles = [music.title for music in music_queue if len(music.title) < 5]
+            short_music_titles = [
+                music.title for music in music_queue if len(music.title) < 5]
 
-            suggestions = [music for music in short_music_titles if cur_keyword.lower() in s.lower()]
+            suggestions = [
+                music for music in short_music_titles if cur_keyword.lower() in music.lower()]
 
         elif len(cur_keyword) >= 3:
-            suggestions = [music.title for music in music_queue if cur_keyword.lower() in music.title.lower()]
+            suggestions = [
+                music.title for music in music_queue if cur_keyword.lower() in music.title.lower()]
 
         return [
             app_commands.Choice(name=nome, value=nome)

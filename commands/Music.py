@@ -192,7 +192,6 @@ class Music(app_commands.Group):
         except Exception as e:
             await interaction.followup.send(f"Erro no comando queue: {e}")
 
-
     @app_commands.command(name="add", description="Adiciona música na fila 🎶.")
     @app_commands.describe(url="URL da música ou palavra-chave")
     async def add(self, interaction: discord.Interaction, url: str):
@@ -250,12 +249,14 @@ class Music(app_commands.Group):
             title = str(data["title"])
             username = str(interaction.user.display_name)
             seconds = int(data["duration"])
-            formatted_time_string = f"{(seconds // 60):02d}:{(seconds % 60):02d}"
+            formatted_time_string = f"{
+                (seconds // 60):02d}:{(seconds % 60):02d}"
 
             SQLite3DB().append_to_queue(url, title, username)
 
             await interaction.followup.send(
-                f"✅ Adicionei **{limit_str_len(title)}** - `{formatted_time_string}` à fila com sucesso."
+                f"✅ Adicionei **{limit_str_len(title)}** - `{
+                    formatted_time_string}` à fila com sucesso."
             )
 
         except Exception:

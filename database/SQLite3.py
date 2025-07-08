@@ -2,6 +2,7 @@ import sqlite3
 import os
 from datetime import datetime
 from classes.Queue import Queue
+from classes.Soundboard import Soundboard
 import logging
 
 logger = logging.getLogger(__name__)
@@ -60,11 +61,6 @@ class SQLite3DB:
                        (name.lower(),))
         self.conn.commit()
 
-    def remove_music_by_url(self, url: str):
-        cursor = self.conn.cursor()
-        cursor.execute("DELETE FROM queue WHERE url = ?", (url,))
-        self.conn.commit()
-
     def remove_music_by_title(self, title: str):
         cursor = self.conn.cursor()
         cursor.execute(
@@ -81,21 +77,16 @@ class SQLite3DB:
         cursor.execute("SELECT url FROM soundboard")
         return "\n".join([f".{row[0]}" for row in cursor.fetchall()])
 
-    def get_all_music_urls(self):
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT url FROM queue")
-        return "\n".join([f".{row[0]}" for row in cursor.fetchall()])
-
-    def get_all_music_titles(self):
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT title FROM queue")
-        title_list = cursor.fetchall()
-        return title_list
-
     def get_soundboard_db(self):
         cursor = self.conn.cursor()
-        cursor.execute("SELECT name, url FROM soundboard")
-        return {name: url for name, url in cursor.fetchall()}
+        cursor.execute(
+            "SELECT id, name, url, user, created_at FROM soundboard")
+        rows = cursor.fetchall()
+        return [
+            Soundboard(id=row[0], name=row[1], url=row[2],
+                       user=row[3], created_at=row[4])
+            for row in rows
+        ]
 
     def get_queue(self):
         cursor = self.conn.cursor()
@@ -131,33 +122,10 @@ class SQLite3DB:
             "SELECT name FROM soundboard WHERE url = ?", (url.strip(),))
         return [row[0] for row in cursor.fetchall()]
 
-    def get_current_queue_music(self):
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT url FROM queue ORDER BY created_at LIMIT 1")
-        result = cursor.fetchone()
-        return result[0] if result else None
-
-    def get_played_queue(self):
-        cursor = self.conn.cursor()
-        cursor.execute(
-            "SELECT * FROM queue WHERE played IS TRUE ORDER BY created_at DESC")
-        rows = cursor.fetchall()
-        return [
-            Queue(id=row[0], url=row[1], title=row[2],
-                  user=row[3], created_at=row[4])
-            for row in rows
-        ]
-
     def append_to_queue(self, url: str, title: str, user: str):
         cursor = self.conn.cursor()
         cursor.execute(
             "INSERT INTO queue (url, title, user, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)", (url, title, user))
-        self.conn.commit()
-
-    def remove_current_music(self):
-        cursor = self.conn.cursor()
-        cursor.execute(
-            "DELETE FROM queue WHERE id = (SELECT id FROM queue ORDER BY created_at LIMIT 1)")
         self.conn.commit()
 
     def count_queue(self):
