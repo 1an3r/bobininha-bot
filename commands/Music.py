@@ -213,7 +213,7 @@ class Music(app_commands.Group):
                     return
 
                 if music.startswith("!"):
-                    await self.process_url(interaction, results[0].url)
+                    await self.process_url(interaction, results[0]["url"])
                     await interaction.followup.send("Ohhh eu vejo que você se sente com sorte, não é mesmo?🥵")
                     return
 
