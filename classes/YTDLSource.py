@@ -2,6 +2,8 @@ import yt_dlp
 import discord
 import asyncio
 import re
+import os
+os.environ["DISPLAY"] = ""
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
@@ -10,11 +12,6 @@ class YTDLSource(discord.PCMVolumeTransformer):
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'opus',
-            'preferredquality': '192',
-        },
-            {
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
             'preferredquality': '192',
         }],
         'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
