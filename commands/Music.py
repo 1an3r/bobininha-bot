@@ -60,7 +60,6 @@ class Music(app_commands.Group):
 
     @app_commands.command(name="skip", description="Pula para a próxima música da fila. 🦘.")
     async def skip(self, interaction: discord.Interaction):
-        await interaction.response.defer(thinking=False)
         logger.info("/music skip was called")
         try:
             (voice_client, _) = await Utils.connect_to_channel(interaction)
