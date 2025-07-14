@@ -30,8 +30,6 @@ class Music(app_commands.Group):
             queue_size = SQLite3DB().count_queue()
             if queue_size == 0:
                 await interaction.followup.send("Não existe uma fila para ser tocada.")
-                # SQLite3DB().nuking_queue_table()
-                # logger.info("Nuking the queue table contents since it was called without any suitable members.")
                 logger.info("Called play without a queue, returning.")
                 return
 
@@ -134,8 +132,7 @@ class Music(app_commands.Group):
             try:
                 if not voice_client.is_playing() and not voice_client.is_paused():
                     song = SQLite3DB().get_queue()[0]
-                    logger.debug(
-                        "Fetched next song to play, retrieved as: %s", song)
+                    logger.debug("Fetched next song to play, retrieved as: %s", song)
                     await self.play_next(voice_channel, voice_client, song)
                     queue_size = SQLite3DB().count_queue()
                     logger.debug("Queue size: %s", queue_size)
@@ -157,10 +154,7 @@ class Music(app_commands.Group):
         queue_size = SQLite3DB().count_queue()
 
         if queue_size == 0:
-            # SQLite3DB().nuking_queue_table()
-            # logger.info("Nuking queue table contents since the player ended.")
-            logger.info(
-                "Playing_queue loop ended without a queue left to play")
+            logger.info("Playing_queue loop ended without a queue left to play")
             await voice_channel.send("A música acabou, mas não fique triste. Chame /music add para colocar a próxima, /music play para eu tocar ela, e seremos felizes para sempre 😁.")
             return
 
@@ -214,42 +208,41 @@ class Music(app_commands.Group):
 
                 if music.startswith("!"):
                     await self.process_url(interaction, results[0]["url"])
-                    await interaction.followup.send("Ohhh eu vejo que você se sente com sorte, não é mesmo?🥵")
+                    await interaction.followup.send("Ohhh eu vejo que você se sente com sorte, não é mesmo? 🍀 ")
                     return
 
-                embed = discord.Embed(
+                embed=discord.Embed(
                     title="🎵 Resultados da Busca",
-                    description="Escolha a música clicando em um dos botões abaixo:",
                     color=discord.Color.green()
                 )
 
-                await interaction.followup.send(embed=embed, view=ButtonList(results, interaction, self.process_url))
+                logger.debug("button_list = %s", button_list)
+                button_list=ButtonList(results, interaction, self.process_url)
+
+                await interaction.followup.send(embed=embed, view=button_list)
 
             except Exception:
                 logger.exception("Error during keyword search.")
                 return
 
-    @app_commands.command(name="remove", description="Remove uma música da fila 🎶.")
-    @app_commands.describe(title="Título da música")
-    @app_commands.autocomplete(title=on_search_queue)
+    @ app_commands.command(name="remove", description="Remove uma música da fila 🎶.")
+    @ app_commands.describe(title="Título da música")
+    @ app_commands.autocomplete(title=on_search_queue)
     async def remove(self, interaction: discord.Interaction, title: str):
         await interaction.response.defer()
-        db = SQLite3DB().get_queue()
+        db=SQLite3DB().get_queue()
 
         if interaction.user.display_name == db[0].user:
             SQLite3DB().remove_music_by_title(title)
-            await interaction.followup.send(f"Deletei a música: {title} da fila.")
-            return
 
-        await interaction.followup.send("Você não enviou essa música para a queue, logo você não tem permissão para removê-la. Pense na diversão do amiguinho também. 😐")
+        interaction.followup.send("Você não enviou essa música para a queue, logo você não tem permissão para removê-la. Pense na diversão do amiguinho também. 😐") 
+        return
 
-    @app_commands.command(name="clear", description="Limpa a fila 🧹.")
+    @ app_commands.command(name="clear", description="Limpa a fila 🧹.")
     async def clear(self, interaction: discord.Interaction):
         await interaction.response.defer()
-
-        # SQLite3DB().nuking_queue_table()
-
-        await interaction.followup.send(f"Limpei toda a fila de músicas, espero que você saiba o que está fazendo... 😱")
+        await interaction.followup.send(f"Este comando no momento está on-holding 😅 ")
+        return
 
     async def process_url(self, interaction: discord.Interaction, url: str):
         logger.info("callback was called with URL: %s", url)
@@ -260,25 +253,23 @@ class Music(app_commands.Group):
                         await interaction.followup.send("❌ URL não encontrada ou inacessível.")
                         return
 
-            data = await YTDLSource.extract_info_async(url)
+            data=await YTDLSource.extract_info_async(url)
             # logger.warning("Data extracted from URL: %s", data)
-            title = str(data["title"])
-            username = str(interaction.user.display_name)
-            seconds = int(data["duration"])
-            formatted_time_string = f"{
-                (seconds // 60):02d}:{(seconds % 60):02d}"
+            title=str(data["title"])
+            username=str(interaction.user.display_name)
+            seconds=int(data["duration"])
+            formatted_time_string=f"{
+                    (seconds // 60):02d}:{(seconds % 60):02d}"
             logger.debug("Adding song to queue: %s by %s", title, username)
             SQLite3DB().append_to_queue(url, title, username)
 
             await interaction.followup.send(
-                f"✅ Adicionei **{limit_str_len(title)}** - `{
-                    formatted_time_string}` à fila com sucesso."
+                f"✅ Adicionei **{limit_str_len(title)}** - `{formatted_time_string}` à fila com sucesso."
             )
 
         except Exception:
             logger.exception("Erro ao processar a URL.")
             await interaction.followup.send("❌ Ocorreu um erro ao processar a música.")
-
 
 def setup(bot):
     bot.tree.add_command(Music(bot))

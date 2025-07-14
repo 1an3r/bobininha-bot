@@ -4,10 +4,11 @@ from classes.YTDLSource import YTDLSource
 
 
 def limit_str_len(string: str, limit: int = 25):
-    if len(string) > limit:
-        return string[:limit] + "..."
+    if (len(string) - 3) > limit:
+        return string[:(limit - 3)] + "..."
 
     return string
+
 
 class Utils:
     def __init__(self, bot):

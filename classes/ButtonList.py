@@ -5,6 +5,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class ButtonList(ui.View):
     def __init__(self, results, interaction: discord.Interaction, callback_func):
         super().__init__(timeout=60)
@@ -13,7 +14,8 @@ class ButtonList(ui.View):
 
         for i, entry in enumerate(results):
             button = ui.Button(
-                label=limit_str_len(entry.get("title", f"Resultado {i+1}"), 999),
+                label=limit_str_len(
+                    entry.get("title", f"Resultado {i+1}"), 70),
                 style=ButtonStyle.primary
             )
             button.callback = self.make_callback(entry["url"])
