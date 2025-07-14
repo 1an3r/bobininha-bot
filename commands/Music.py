@@ -216,8 +216,8 @@ class Music(app_commands.Group):
                     color=discord.Color.green()
                 )
 
+                button_list = ButtonList(results, interaction, self.process_url)
                 logger.debug("button_list = %s", button_list)
-                button_list=ButtonList(results, interaction, self.process_url)
 
                 await interaction.followup.send(embed=embed, view=button_list)
 
