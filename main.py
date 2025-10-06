@@ -1,3 +1,4 @@
+import subprocess
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -65,6 +66,14 @@ async def on_command_error(ctx, error):
     print(f"Erro: {error}")
 
 if __name__ == "__main__":
+    pip_cmd = ["python", "-m", "ensurepip", "--upgrade"]
+    subprocess.run(pip_cmd, capture_output=False)
+    logger.warning("Upgraded pip")
+
+    requirements_cmd = ["pip", "install", "-U", "-r", "requirements.txt"]
+    subprocess.run(requirements_cmd, capture_output=False)
+    logger.warning("Upgraded requirements.txt")
+
     token = os.getenv("DISCORD_TOKEN")
     if not token:
         logger.info("❌ Token do bot não encontrado!")
