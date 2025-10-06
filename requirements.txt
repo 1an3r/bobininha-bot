@@ -1,8 +1,10 @@
-python-dotenv~=1.1.1
-discord.py[voice]>=2.3.0
-yt-dlp>=2023.7.6
-aiohttp>=3.8.0
-PyNaCl>=1.5.0
+python-dotenv
+discord.py[voice]
+discord.py
+yt-dlp
+aiohttp
+PyNaCl
+ffmpeg
 ffmpeg-python
 typing_extensions
-PyYAML~=6.0.2
+PyYAML
