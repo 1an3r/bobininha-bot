@@ -15,7 +15,7 @@ class Utils:
         self.bot = bot
 
     @staticmethod
-    async def connect_to_channel(interaction: discord.Interaction) -> discord.VoiceClient:
+    async def connect_to_channel(interaction: discord.Interaction, timeout: float = 90.0) -> discord.VoiceClient:
         if not interaction.user.voice or not interaction.user.voice.channel:
             raise RuntimeError("Usuário não está conectado a um canal de voz.")
 
@@ -24,9 +24,9 @@ class Utils:
 
         if voice_client:
             if voice_client.channel != voice_channel:
-                await voice_client.move_to(voice_channel)
+                await voice_client.move_to(voice_channel, timeout=timeout)
         else:
-            voice_client = await voice_channel.connect()
+            voice_client = await voice_channel.connect(timeout=timeout)
 
         return (voice_client, voice_channel)
 
