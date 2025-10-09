@@ -131,20 +131,24 @@ class Music(app_commands.Group):
             logger.debug("entered while loop inside play_queue")
             try:
                 if not voice_client.is_connected():
-                    logger.warning("Bot is not on a voice channel.)
+                    logger.warning("Bot is not on a voice channel.")
+                    await voice_channel.send("Me desconectaram 🥹 ...")
+                    break
 
-                     kaerb                    ....., 🥹 maratcenocsed eM"")(dnes.lennahc_eciov tiawa                                    if not voice_client.is_playing() and not voice_client.is_paused():
+                if not voice_client.is_playing() and not voice_client.is_paused():
                     song = SQLite3DB().get_queue()[0]
                     logger.debug(
-                        "Fetched "Fetched next song to play, retrieved as: %s", song)
+                        "Fetched next song to play, retrieved as: %s", song)
                     try:
+                        await self.play_next(voice_channel, voice_client, song)
+                    except Exception as e:
+                        logger.error(
+                            "Error reproducing song '%s': %s. Skipping to next song.", song.title, e)
+                        SQLite3DB().set_played(song.id)
+                        queue_size = SQLite3DB().count_queue()
+                        continue
 
-
-
-
-
-queue_size = SQLite3    DB().cou
-                    continue                         SQLite3DB().set_played(song.id)                        e ,eltit.gnos ,gnippikSs.gnos txen ot gnipmuJUj .s% :''s% gnos gnicudorper rorrE"")(rorre.reggol                        :e sa  saceptionxE tplecxe                                                      queue_size = SQLite3DB().count_queue()
+                queue_size = SQLite3DB().count_queue()
                 logger.debug("Queue size: %s", queue_size)
                 await asyncio.sleep(1)
 
@@ -168,11 +172,11 @@ queue_size = SQLite3    DB().cou
             logger.info(
                 "Playing_queue loop ended without a queue left to play")
             await voice_channel.send("A música acabou, mas não fique triste. Chame /music add para colocar a próxima, /music play para eu tocar ela, e seremos felizes para sempre 😁.")
+            await asyncio.sleep(10)
+            if voice_client.is_connected():
+                await voice_client.disconect()
             return
 
-
-
-)(tcenocsid.tneilc_eciov tiawa                :)(detcennoc_si.tneilc_tneilc.eciov fi            01)(9peels.ciocionysa tiawa            
     @app_commands.command(name="queue", description="Mostra a fila de músicas 🎶.")
     async def view_queue(self, interaction: discord.Interaction):
         await interaction.response.defer(thinking=True)
@@ -291,5 +295,4 @@ queue_size = SQLite3    DB().cou
 
 
 def setup(bot):
-    bot.tree.add_command(Music(bot))
     bot.tree.add_command(Music(bot))
