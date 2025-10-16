@@ -1,7 +1,7 @@
-# Bobininha Bot: alpha Lovely Seal
+# Bobininha Bot: alpha chubby platipus
 
 ## "...Por que pagar nitro para ter mais do que 8 áudios no soundboard é um absurdo, pô."
-Bobininha é um Bot que toca memes e músicas baseados em uma URL que seja compátivel (mp3, ytb), mediante comandos de texto.
+Bobininha é um Bot que toca memes e músicas baseados em uma URL, ou pesquisa no youtube para você, mediante comandos de texto.
 ## Comandos
 
 ###
@@ -26,9 +26,6 @@ Bobininha é um Bot que toca memes e músicas baseados em uma URL que seja comp�
 - DATABASE DE QUEUE (CASO O BOT SEJA USADO PARA MÚSICA) ✅
 - QUEUE? (CASO O BOT SEJA UTILIZADO COM A FUNCIONALIDADE DE NÃO APENAS SOUNDBOARD MAS TB REPRODUTOR DE MÚSICA) ✅
 - LIMPAR O CÓDIGO ATUAL ⌛
-- ADICIONAR COMANDO DE LIMPAR A FILA MANUALMENTE
-- ADICIONAR FUNCIONALIDADE PARA QUE A FILA SEJA LIMPA AUTOMATICAMENTE QUANDO ELA ESTIVER VAZIA (APÓS TER SIDO TOCADA SOMENTE)
-- MOSTRAR STATUS DO ÁUDIO ⌛
-- URLS FIXAS QUE SÃO BOAS DE GUARDAR (OP.GG DAS CONTAS, ETC) ⌛
+- ADICIONAR COMANDO DE LIMPAR A FILA MANUALMENTE ✅
 - MANIPULAR O ÁUDIO ON THE FLY ❓
-- GUI? (MUNDO DOS SONHOS MUITO DISTANTE) ❓❓❓
+- GUI ❓
