@@ -118,10 +118,14 @@ class Music(app_commands.Group):
         except discord.ClientException:
             logger.exception(
                 "Discord Client Exception: Usually trying to play audio when audio is already playing...")
+            logger.info(f"Set current song as played to prevent an infinite loop: {song.id}")
+            SQLite3DB().set_played(song.id)
             return
 
         except Exception:
             logger.exception("Exception Error: ")
+            logger.info(f"Set current song as played to prevent an infinite loop: {song.id}")
+            SQLite3DB().set_played(song.id)
             return
 
     async def play_queue(self, voice_channel: discord.VoiceChannel, voice_client: discord.VoiceClient, queue_size: int):

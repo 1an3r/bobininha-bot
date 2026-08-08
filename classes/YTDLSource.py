@@ -1,7 +1,9 @@
 import yt_dlp
 import discord
 import asyncio
+import os
 
+COOKIE_FILE_PATH = os.path.join(os.getcwd(), 'cookies.txt')
 
 class YTDLSource(discord.PCMVolumeTransformer):
     ytdl_format_options = {
@@ -17,6 +19,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         'no_warnings': True,
         'default_search': 'auto',
         'source_address': '0.0.0.0',
+        'cookiefile': COOKIE_FILE_PATH,
     }
 
     ffmpeg_options = {
@@ -50,6 +53,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
             'quiet': True,
             'skip_download': True,
             'noplaylist': True,
+            'cookiefile': COOKIE_FILE_PATH,
         }
 
         def run():
@@ -68,6 +72,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
             'extract_flat': 'in_playlist',
             'format': 'bestaudio/best',
             'default_search': f'ytsearch{limit}',
+            'cookiefile': COOKIE_FILE_PATH,
         }
 
         def run():
