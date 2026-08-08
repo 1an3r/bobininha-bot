@@ -7,21 +7,10 @@ from database.SQLite3 import SQLite3DB
 from logging import config, getLogger
 from yaml import safe_load, YAMLError
 
-
 def config_loggers():
-    try:
-        with open('logger_config.yaml') as f:
-            yaml_config = safe_load(f)
-        config.dictConfig(yaml_config)
-
-    except FileNotFoundError as e:
-        print("logging file not found: %s", e)
-
-    except YAMLError as e:
-        print("Error parsing yaml configuration file: %s", e)
-
-    except Exception as e:
-        print("Unexpected error: %s", e)
+    with open('logger_config.yaml') as f:
+        yaml_config = safe_load(f)
+    config.dictConfig(yaml_config)
 
 
 logger = getLogger(__name__)
@@ -34,7 +23,6 @@ intents.voice_states = True
 
 bot = commands.Bot(command_prefix='/', intents=intents)
 
-
 def load_commands(bot_instance):
     for filename in os.listdir("commands"):
         if filename.endswith(".py") and not filename.startswith("_"):
@@ -45,17 +33,13 @@ def load_commands(bot_instance):
 
 load_commands(bot)
 
-
 @bot.event
 async def on_ready():
     logger.info('%s conectou ao Discord!', {bot.user})
     SQLite3DB()
 
-    try:
-        synced = await bot.tree.sync()
-        logger.info("Sincronizados %d comandos slash", len(synced))
-    except Exception as e:
-        logger.error(f"Erro ao sincronizar comandos: {e}")
+    synced = await bot.tree.sync()
+    logger.info("Sincronizados %d comandos slash", len(synced))
 
 
 @bot.event
@@ -65,10 +49,28 @@ async def on_command_error(ctx, error):
     print(f"Erro: {error}")
 
 if __name__ == "__main__":
-    token = os.getenv("DISCORD_TOKEN")
-    if not token:
-        logger.info("❌ Token do bot não encontrado!")
-        logger.info("Crie um arquivo .env com: DISCORD_TOKEN=seu_token_aqui")
-        exit(1)
-    config_loggers()
-    bot.run(token)
+    try:
+        token = os.getenv("DISCORD_TOKEN")
+        if not token:
+            logger.info("❌ Token do bot não encontrado!")
+            logger.info("Crie um arquivo .env com: DISCORD_TOKEN=seu_token_aqui")
+            exit(1)
+        config_loggers()
+        bot.run(token)
+
+    except discord.ClientException:
+        logger.exception(
+            "Discord Client Exception: Usually trying to play audio when audio is already playing...")
+
+    except IndexError:
+        logger.exception(
+            "Index Error: Usually trying to access an index that doesn't exist inside given list")
+
+    except FileNotFoundError as e:
+        print(f"[ERROR]: {e}")
+
+    except YAMLError as e:
+        print(f"[ERROR]: {e}")
+
+    except Exception as e:
+        logger.exception(f"Erro: {e}")
